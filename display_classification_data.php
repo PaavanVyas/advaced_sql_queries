@@ -19,7 +19,7 @@ if (!empty($from_year) && !empty($to_year)) {
         $endMonth = ($year == $to_year) ? $to_month : 12;
 
         for ($month = $startMonth; $month <= $endMonth; $month++) {
-            $formattedMonth = str_pad($month, 2, "0", STR_PAD_LEFT); // Ensure two-digit format
+            $formattedMonth = str_pad($month, 2, "0", STR_PAD_LEFT); 
             $column = "SUM(CASE WHEN YEAR(start_date) = $year AND MONTH(start_date) = $month THEN 1 ELSE 0 END) AS '{$year}_{$formattedMonth}'";
         $sql .= "$column, ";
         }
@@ -46,11 +46,13 @@ if (!empty($from_year) && !empty($to_year)) {
                         <label for="year1" class="form-label">From Year</label>
                         <select id="year1" name="from_year" class="form-select">
                             <option value="">Select Year</option>
-                            <?php while ($row = $result_years->fetch_assoc()) { ?>
+                            <?php while ($row = $result_years->fetch_assoc()) { 
+                                if (!($row['year_value'] == "0000")) {?>
                                 <option value="<?php echo $row['year_value']; ?>" <?php echo ($row['year_value'] == $from_year) ? 'selected' : ''; ?>>
                                     <?php echo $row['year_value']; ?>
                                 </option>
-                            <?php } ?>
+                            <?php
+                        } } ?>
                         </select>
                     </div>
 
@@ -73,11 +75,13 @@ if (!empty($from_year) && !empty($to_year)) {
                         <label for="year2" class="form-label">To Year</label>
                         <select id="year2" name="to_year" class="form-select">
                             <option value="">Select Year</option>
-                            <?php while ($row = $result_years->fetch_assoc()) { ?>
+                            <?php while ($row = $result_years->fetch_assoc()) { 
+                                if (!($row['year_value'] == "0000")) {?>
                                 <option value="<?php echo $row['year_value']; ?>" <?php echo ($row['year_value'] == $to_year) ? 'selected' : ''; ?>>
                                     <?php echo $row['year_value']; ?>
                                 </option>
-                            <?php } ?>
+                            <?php
+                        } } ?>
                         </select>
                     </div>
 
@@ -100,14 +104,14 @@ if (!empty($from_year) && !empty($to_year)) {
                 <?php } else { echo "<p class='alert alert-warning'>No years found.</p>"; } ?>
             </div>
         </form>
-
-        <div>
+                            </div>
             <?php if (!empty($from_year) && !empty($to_year) && $result_years->num_rows > 0) { 
                 if ($to_year < $from_year || ($to_year == $from_year && $to_month < $from_month)) {
-                    echo "<p> class='alert alert-danger'>Invalid date range. Please select again.</p>";
+                    echo "<p class='alert alert-danger'>Invalid date range. Please select again.</p>";
                 } 
                 else { ?>
-                <table class="table table-bordered border-dark m-4 table-hover">
+                <div class="table-responsive">
+                <table class="table table-bordered border-dark m-4 table-hover table-responsive">
                 <thead class="table-active">
     <tr>
         <th rowspan="2">Classification</th>
@@ -128,7 +132,7 @@ if (!empty($from_year) && !empty($to_year)) {
                 $endMonth = ($year == $to_year) ? $to_month : 12;
             ?>
             <?php for ($month = $startMonth; $month <= $endMonth; $month++) { ?>
-                <th><?php echo date("M", mktime(0, 0, 0, $month, 1)); ?></th>
+                <th class="text-center"><?php echo date("M", mktime(0, 0, 0, $month, 1)); ?></th>
             <?php } ?>
         <?php } ?>
     </tr>
@@ -151,7 +155,7 @@ if (!empty($from_year) && !empty($to_year)) {
                                 ?>
                                 <?php for ($month = $startMonth; $month <= $endMonth; $month++) { 
                                     $monthFormatted = sprintf('%02d', $month); ?>
-                                    <td><?php echo isset($row["{$year}_{$monthFormatted}"]) ? $row["{$year}_{$monthFormatted}"] : 0; ?></td>
+                                    <td class="text-center"><?php echo isset($row["{$year}_{$monthFormatted}"]) ? $row["{$year}_{$monthFormatted}"] : 0; ?></td>
                                 <?php } ?>
                             <?php } ?>
                         </tr>
@@ -159,6 +163,7 @@ if (!empty($from_year) && !empty($to_year)) {
                     
                     </tbody>
                 </table>
+                                </div>
             <?php } 
          } else { echo "<p class='alert alert-danger'>Please select both year and month ranges to display data.</p>"; } ?>
         </div>
