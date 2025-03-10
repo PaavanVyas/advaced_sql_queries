@@ -4,30 +4,11 @@ include './conn.php';
 $sql_years = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y') AS year_value FROM contacts_classification ORDER BY start_date;";
 $result_years = $conn->query($sql_years);
 
-$from_year = isset($_POST['from_year']) ? $_POST['from_year'] : "";
-$to_year = isset($_POST['to_year']) ? $_POST['to_year'] : "";
-$from_month = isset($_POST['from_month']) ? $_POST['from_month'] : "";
-$to_month = isset($_POST['to_month']) ? $_POST['to_month'] : "";
-
-if (!empty($from_year) && !empty($to_year)) {
-    $sql = "SELECT classification, ";
-
-    $conditions = [];
-    
-    for ($year = $from_year; $year <= $to_year; $year++) {
-        $startMonth = ($year == $from_year) ? $from_month : 1;
-        $endMonth = ($year == $to_year) ? $to_month : 12;
-
-        for ($month = $startMonth; $month <= $endMonth; $month++) {
-            $formattedMonth = str_pad($month, 2, "0", STR_PAD_LEFT); 
-            $column = "SUM(CASE WHEN YEAR(start_date) = $year AND MONTH(start_date) = $month THEN 1 ELSE 0 END) AS '{$year}_{$formattedMonth}'";
-        $sql .= "$column, ";
-        }
-    }
-
-    $sql = rtrim($sql, ", ");
-    $sql .= " FROM contacts_classification GROUP BY classification;";
-    $result = $conn->query($sql);
+if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
+    $from_date = $_POST['from_date'];
+    $to_date = $_POST['to_date'];
+} else {
+    echo "No data submitted";
 }
 ?>
 
@@ -35,6 +16,11 @@ if (!empty($from_year) && !empty($to_year)) {
 <head>
     <title>Classification Report</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* .table-responsive{
+            max-width:95%;
+        } */
+    </style>
 </head>
 <body>
     <div class="container mt-4">
@@ -42,132 +28,84 @@ if (!empty($from_year) && !empty($to_year)) {
             <h5>Select Year & Month Range</h5>
             <div class="row">
                 <?php if ($result_years->num_rows > 0) { ?>
-                    <div class="col-md-3">
-                        <label for="year1" class="form-label">From Year</label>
-                        <select id="year1" name="from_year" class="form-select">
-                            <option value="">Select Year</option>
-                            <?php while ($row = $result_years->fetch_assoc()) { 
-                                if (!($row['year_value'] == "0000")) {?>
-                                <option value="<?php echo $row['year_value']; ?>" <?php echo ($row['year_value'] == $from_year) ? 'selected' : ''; ?>>
-                                    <?php echo $row['year_value']; ?>
-                                </option>
-                            <?php
-                        } } ?>
-                        </select>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label for="month1" class="form-label">From Month</label>
-                        <select id="month1" name="from_month" class="form-select">
-                            <?php for ($m = 1; $m <= 12; $m++) { 
-                                $mFormatted = sprintf('%02d', $m);
-                            ?>
-                                <option value="<?php echo $mFormatted; ?>" <?php echo ($mFormatted == $from_month) ? 'selected' : ''; ?>>
-                                    <?php echo date("F", mktime(0, 0, 0, $m, 1)); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </div>
-
-                    <?php $result_years->data_seek(0); ?>
-
-                    <div class="col-md-3">
-                        <label for="year2" class="form-label">To Year</label>
-                        <select id="year2" name="to_year" class="form-select">
-                            <option value="">Select Year</option>
-                            <?php while ($row = $result_years->fetch_assoc()) { 
-                                if (!($row['year_value'] == "0000")) {?>
-                                <option value="<?php echo $row['year_value']; ?>" <?php echo ($row['year_value'] == $to_year) ? 'selected' : ''; ?>>
-                                    <?php echo $row['year_value']; ?>
-                                </option>
-                            <?php
-                        } } ?>
-                        </select>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label for="month2" class="form-label">To Month</label>
-                        <select id="month2" name="to_month" class="form-select">
-                            <?php for ($m = 1; $m <= 12; $m++) { 
-                                $mFormatted = sprintf('%02d', $m);
-                            ?>
-                                <option value="<?php echo $mFormatted; ?>" <?php echo ($mFormatted == $to_month) ? 'selected' : ''; ?>>
-                                    <?php echo date("F", mktime(0, 0, 0, $m, 1)); ?>
-                                </option>
-                            <?php } ?>
-                        </select>
-                    </div>
-
+                    <input type="date" name="from_date">
+                    <input type="date" name="to_date">
                     <div class="col-md-12 mt-3">
                         <button type="submit" class="btn btn-primary">Generate Report</button>
                     </div>
                 <?php } else { echo "<p class='alert alert-warning'>No years found.</p>"; } ?>
             </div>
         </form>
-                            </div>
-            <?php if (!empty($from_year) && !empty($to_year) && $result_years->num_rows > 0) { 
-                if ($to_year < $from_year || ($to_year == $from_year && $to_month < $from_month)) {
-                    echo "<p class='alert alert-danger'>Invalid date range. Please select again.</p>";
-                } 
-                else { ?>
-                <div class="table-responsive">
-                <table class="table table-bordered border-dark m-4 table-hover table-responsive">
-                <thead class="table-active">
-    <tr>
-        <th rowspan="2">Classification</th>
-        <?php for ($year = $from_year; $year <= $to_year; $year++) { ?>
-            <?php 
-                // Determine the correct number of months for each year
-                $startMonth = ($year == $from_year) ? $from_month : 1;
-                $endMonth = ($year == $to_year) ? $to_month : 12;
-                $monthCount = $endMonth - $startMonth + 1;
-            ?>
-            <th colspan="<?php echo $monthCount; ?>" class="text-center"><?php echo $year; ?></th>
-        <?php } ?>
-    </tr>
-    <tr>
-        <?php for ($year = $from_year; $year <= $to_year; $year++) { ?>
-            <?php 
-                $startMonth = ($year == $from_year) ? $from_month : 1;
-                $endMonth = ($year == $to_year) ? $to_month : 12;
-            ?>
-            <?php for ($month = $startMonth; $month <= $endMonth; $month++) { ?>
-                <th class="text-center"><?php echo date("M", mktime(0, 0, 0, $month, 1)); ?></th>
-            <?php } ?>
-        <?php } ?>
-    </tr>
-</thead>
-
-                    <tbody class="table-group-divider bg-light text-dark">
-                    <?php
-                    if (!$result) {
-                        die("<p class='alert alert-danger'>Database Error: " . $conn->error . "</p>");
-                    }
-
-                    while ($row = $result->fetch_assoc()) { ?>
-                        <tr>
-                            <td><?php echo ($row['classification'] == "") ? "Unclassified or missing classification" : $row['classification']; ?></td>
-                            
-                            <?php for ($year = $from_year; $year <= $to_year; $year++) { ?>
-                                <?php 
-                                    $startMonth = ($year == $from_year) ? $from_month : 1;
-                                    $endMonth = ($year == $to_year) ? $to_month : 12;
-                                ?>
-                                <?php for ($month = $startMonth; $month <= $endMonth; $month++) { 
-                                    $monthFormatted = sprintf('%02d', $month); ?>
-                                    <td class="text-center"><?php echo isset($row["{$year}_{$monthFormatted}"]) ? $row["{$year}_{$monthFormatted}"] : 0; ?></td>
-                                <?php } ?>
-                            <?php } ?>
-                        </tr>
-                    <?php } ?>
-                    
-                    </tbody>
-                </table>
-                                </div>
-            <?php } 
-         } else { echo "<p class='alert alert-danger'>Please select both year and month ranges to display data.</p>"; } ?>
-        </div>
     </div>
+    
+    <?php
+if (!empty($from_date) && !empty($to_date)) {
+    $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
+            FROM contacts_classification 
+            WHERE start_date BETWEEN '$from_date' AND '$to_date' 
+            GROUP BY classification, month";
+
+    $result = $conn->query($sql);
+
+    if (!$result) {
+        die("<p class='alert alert-danger'>Database Error: " . $conn->error . "</p>");
+    }
+
+    $data = [];
+    while ($row = $result->fetch_assoc()) {
+        $data[$row['classification']][$row['month']] = $row['count'];
+    }
+
+    // Extract unique months and sort them
+    $months = [];
+    foreach ($data as $classification => $months_data) {
+        foreach ($months_data as $month => $count) {
+            $months[$month] = $month;
+        }
+    }
+
+    sort($months);
+    ?>
+
+    <div class="table-responsive">
+        <table class="table table-bordered border-dark m-4 table-hover">
+            <thead class="table-active">
+                <tr>
+                    <th>Classification</th>
+                    <?php 
+                    // Loop through the sorted months array and display each month
+                    foreach ($months as $month) {
+                        echo "<th>" . htmlspecialchars($month) . "</th>";
+                    }
+                    ?>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider bg-light text-dark">
+                <?php 
+                // Loop through the classifications and display data
+                foreach ($data as $classification => $months_data) { ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars(empty($classification) ? "Unclassified Data or Missing classification." : $classification); ?></td>
+                        <?php
+                        // Loop through the sorted months and display counts
+                        foreach ($months as $month) {
+                            echo "<td class='text-center'>" . (isset($months_data[$month]) ? $months_data[$month] : 0) . "</td>";
+                        }
+                        ?>
+                    </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
+
+<?php
+} elseif (strtotime($from_date) > strtotime($to_date)) {
+    echo "<p class='alert alert-danger'>The 'From Date' cannot be greater than the 'To Date'. Please enter data correctly.</p>";
+} else {
+    echo "<p class='alert alert-danger'>Please select both year and month ranges to display data.</p>";
+}
+?>
+
 </body>
 </html>
 
