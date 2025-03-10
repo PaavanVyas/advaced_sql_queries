@@ -33,13 +33,19 @@ if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
                     <div class="col-md-12 mt-3">
                         <button type="submit" class="btn btn-primary">Generate Report</button>
                     </div>
-                <?php } else { echo "<p class='alert alert-warning'>No years found.</p>"; } ?>
+                <?php } else { echo "<p class='container alert alert-warning'>No years found.</p>"; } ?>
             </div>
         </form>
     </div>
     
     <?php
 if (!empty($from_date) && !empty($to_date)) {
+    
+    if(strtotime($from_date) > strtotime($to_date)) {
+    echo "<p class='container alert alert-danger'>Please enter dates correctly.</p>";
+    exit();
+    } 
+
     $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
             FROM contacts_classification 
             WHERE start_date BETWEEN '$from_date' AND '$to_date' 
@@ -56,7 +62,6 @@ if (!empty($from_date) && !empty($to_date)) {
         $data[$row['classification']][$row['month']] = $row['count'];
     }
 
-    // Extract unique months and sort them
     $months = [];
     foreach ($data as $classification => $months_data) {
         foreach ($months_data as $month => $count) {
@@ -73,7 +78,6 @@ if (!empty($from_date) && !empty($to_date)) {
                 <tr>
                     <th>Classification</th>
                     <?php 
-                    // Loop through the sorted months array and display each month
                     foreach ($months as $month) {
                         echo "<th>" . htmlspecialchars($month) . "</th>";
                     }
@@ -82,12 +86,10 @@ if (!empty($from_date) && !empty($to_date)) {
             </thead>
             <tbody class="table-group-divider bg-light text-dark">
                 <?php 
-                // Loop through the classifications and display data
                 foreach ($data as $classification => $months_data) { ?>
                     <tr>
                         <td><?php echo htmlspecialchars(empty($classification) ? "Unclassified Data or Missing classification." : $classification); ?></td>
                         <?php
-                        // Loop through the sorted months and display counts
                         foreach ($months as $month) {
                             echo "<td class='text-center'>" . (isset($months_data[$month]) ? $months_data[$month] : 0) . "</td>";
                         }
@@ -99,10 +101,9 @@ if (!empty($from_date) && !empty($to_date)) {
     </div>
 
 <?php
-} elseif (strtotime($from_date) > strtotime($to_date)) {
-    echo "<p class='alert alert-danger'>The 'From Date' cannot be greater than the 'To Date'. Please enter data correctly.</p>";
-} else {
-    echo "<p class='alert alert-danger'>Please select both year and month ranges to display data.</p>";
+}
+else {
+    echo "<p class= 'container alert alert-danger'>Please select both year and month ranges to display data.</p>";
 }
 ?>
 
