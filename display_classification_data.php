@@ -53,8 +53,8 @@ if (!empty($from_date) && !empty($to_date)) {
 
     $result = $conn->query($sql);
 
-    if (!$result) {
-        die("<p class='alert alert-danger'>Database Error: " . $conn->error . "</p>");
+    if ($result->num_rows==0) {
+        die("<p class='alert alert-danger'>No data found in the given timestamp " . $conn->error . "</p>");
     }
 
     $data = [];
@@ -111,6 +111,3 @@ else {
 </html>
 
 <?php $conn->close(); ?>
-
-
-
