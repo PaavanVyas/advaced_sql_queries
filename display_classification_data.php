@@ -38,6 +38,7 @@ if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
         </form>
     </div>
     
+    
     <?php
 if (!empty($from_date) && !empty($to_date)) {
     
@@ -71,8 +72,10 @@ if (!empty($from_date) && !empty($to_date)) {
 
     sort($months);
     ?>
-
-    <div class="table-responsive">
+    <div class="container mt-4">
+        <h6 class="form-label">Showing data from <?php echo $from_date;?> to <?php echo $to_date;?></h6>
+    </div>
+    <div class="container table-responsive">
         <table class="table table-bordered border-dark m-4 table-hover">
             <thead class="table-active">
                 <tr>
