@@ -28,8 +28,12 @@ if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
             <h5>Select Year & Month Range</h5>
             <div class="row">
                 <?php if ($result_years->num_rows > 0) { ?>
-                    <input type="date" name="from_date" class="form-control w-25 ms-5">
-                    <input type="date" name="to_date" class="form-control w-25 ms-5">
+                    <input type="date" name="from_date" class="form-control w-25 ms-5"<?php if(!empty($from_date)){
+                        ?>value="<?php echo $from_date?>"<?php
+                    }?>>
+                    <input type="date" name="to_date" class="form-control w-25 ms-5"<?php if(!empty($to_date)){
+                        ?>value="<?php echo $to_date?>"<?php
+                    }?>>
                     <div class="col-md-12 mt-3">
                         <button type="submit" class="btn btn-primary">Generate Report</button>
                     </div>
