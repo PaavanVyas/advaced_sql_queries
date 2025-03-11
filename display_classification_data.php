@@ -155,32 +155,14 @@ if (isset($_POST['generate_pdf'])) {
     ob_end_clean();  
     $from_date = $_POST['from_date'];
     $to_date = $_POST['to_date'];
-    // $pdf = new TCPDF('L', 'mm', 'A4');
     $pdf = new TCPDF(); 
     $pdf->AddPage();
     $pdf->setTitle('Data_Report_'.$from_date.'_to_'.$to_date);
     $pdf->setSubject('Setting Subject');
-    // $pdf->Write(0,'Hello This pdf will be from '.$from_date.' to '.$to_date);
    
 
     $pdf->SetFont('helvetica', '', 8);
 
-    // $pdf->Cell(40, 10, 'Classification',1);
-    // foreach($months as $month) {
-        
-    //     $pdf->Cell(15, 10, $month, 1, 0, 'C');
-
-    // }
-    // $pdf->Ln();
-
-    // foreach ($data as $classification => $months_data) {
-    //     $pdf->Cell(40, 15, empty($classification) ? "Unclassified Data" : $classification, 1, 0, 'C');
-    //     foreach ($months as $month) {
-    //         $count = isset($months_data[$month]) ? $months_data[$month] : 0;
-    //         $pdf->Cell(15, 15, $count, 1, 0, 'C');
-    //     }
-    //     $pdf->Ln();
-    // }
     $generatereport = '<table class="table table-bordered border-dark m-4 table-hover" style="border: 1px solid black; border-collapse: collapse; margin: 10px;">';
     $generatereport .= '<thead class="table-active">';
     $generatereport .= '<tr>';
@@ -213,7 +195,6 @@ if (isset($_POST['generate_pdf'])) {
         $pdf->Writehtml($generatereport,true,true,true,true,'');
         $pdf->Output();
 
-        // $pdf->Output('report_' . $from_date . ' to ' . $to_date . '.pdf', 'I');
     }
 $conn->close(); 
 ?>
