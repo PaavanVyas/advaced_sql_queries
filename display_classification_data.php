@@ -33,9 +33,11 @@ if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
                 <h5>Select Year & Month Range</h5>
             
                 <?php if ($result_years->num_rows > 0) { ?>
+                    <label>FROM:</label>
                     <input type="date" name="from_date" class="form-control w-25 ms-5"<?php if(!empty($from_date)){
                         ?>value="<?php echo $from_date?>"<?php
                     }?>>
+                    <label>TO:</label>
                     <input type="date" name="to_date" class="form-control w-25 ms-5"<?php if(!empty($to_date)){
                         ?>value="<?php echo $to_date?>"<?php
                     }?>>
@@ -68,6 +70,9 @@ if (!empty($from_date) && !empty($to_date)) {
             GROUP BY classification, month";
 
     $result = $conn->query($sql);
+    // while($data_new = $result->fetch_assoc()){
+    //     echo $data_new['count'];
+    // }
 
     if ($result->num_rows==0) {
         die("</div></div><p class='container alert alert-danger'>No data found in the given timestamp " . $conn->error . "</p>");
