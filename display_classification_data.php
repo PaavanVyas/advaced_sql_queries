@@ -28,9 +28,10 @@ if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
 </head>
 <body>
     <div class="container mt-4">
-        <form method="POST">
-            <h5>Select Year & Month Range</h5>
-            <div class="row">
+        <div class="row">
+            <form method="POST">
+                <h5>Select Year & Month Range</h5>
+            
                 <?php if ($result_years->num_rows > 0) { ?>
                     <input type="date" name="from_date" class="form-control w-25 ms-5"<?php if(!empty($from_date)){
                         ?>value="<?php echo $from_date?>"<?php
@@ -38,21 +39,26 @@ if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
                     <input type="date" name="to_date" class="form-control w-25 ms-5"<?php if(!empty($to_date)){
                         ?>value="<?php echo $to_date?>"<?php
                     }?>>
-                    <div class="col-md-12 mt-3">
-                        <button type="submit" class="btn btn-primary">Generate Report</button>
+                    <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary mt-2">Generate Report</button>
+                    
+                
+                <?php } else { 
+                    ?>
                     </div>
-                <?php } else { echo "<p class='container alert alert-warning'>No years found.</p>"; } ?>
-            </div>
-        </form>
-    </div>
-    
+                </div>
+                    <p class='container alert alert-warning m-5'>No years found.</p><?php
+                    } ?>
 
+            </form>
+       
     
     <?php
 if (!empty($from_date) && !empty($to_date)) {
     
     if(strtotime($from_date) > strtotime($to_date)) {
-    echo "<p class='container alert alert-danger'>Please enter dates correctly.</p>";
+    ?></div>
+    </div><p class='container alert alert-danger'>Please enter dates correctly.</p><?php
     exit();
     } 
 
@@ -64,7 +70,7 @@ if (!empty($from_date) && !empty($to_date)) {
     $result = $conn->query($sql);
 
     if ($result->num_rows==0) {
-        die("<p class='container alert alert-danger'>No data found in the given timestamp " . $conn->error . "</p>");
+        die("</div></div><p class='container alert alert-danger'>No data found in the given timestamp " . $conn->error . "</p>");
     }
 
     $data = [];
@@ -83,19 +89,23 @@ if (!empty($from_date) && !empty($to_date)) {
     <?php
     if($result->num_rows>0){
     ?>
-    <div class="container">
-     <form action="" method="POST">
-            <button type="submit" name="generate_pdf" class="btn btn-primary">Download PDF</button>
-            <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
-            <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
-        </form>
-    <div class="container mt-4">
-        <h6 class="form-label">Showing data from <?php echo $from_date;?> to <?php echo $to_date;?></h6>
-    </div>
-    </div>
-    <?php
+
+
+         <form action="" method="POST">
+         <button type="submit" name="generate_pdf" class="btn btn-primary">Download PDF</button>
+                <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
+                <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
+            </form>
+                
+        </div>
+        </div>
+        <div class="container mt-4">
+            <h6 class="form-label">Showing data from <?php echo $from_date;?> to <?php echo $to_date;?></h6>
+        </div>
+        <?php
     }
     ?>
+</div>
     <div class="container table-responsive">
         <table class="table table-bordered border-dark m-4 table-hover">
             <thead class="table-active">
@@ -127,7 +137,7 @@ if (!empty($from_date) && !empty($to_date)) {
 <?php
 }
 else {
-    echo "<p class= 'container alert alert-danger'>Please select both year and month ranges to display data.</p>";
+    echo "</div></div><p class= 'container alert alert-danger'>Please select both year and month ranges to display data.</p>";
 }
 ?>
 
@@ -143,7 +153,7 @@ if (isset($_POST['generate_pdf'])) {
     // $pdf = new TCPDF('L', 'mm', 'A4');
     $pdf = new TCPDF(); 
     $pdf->AddPage();
-    $pdf->setTitle('Data Report '.$from_date.' to '.$to_date);
+    $pdf->setTitle('Data_Report_'.$from_date.'_to_'.$to_date);
     $pdf->setSubject('Setting Subject');
     // $pdf->Write(0,'Hello This pdf will be from '.$from_date.' to '.$to_date);
    
