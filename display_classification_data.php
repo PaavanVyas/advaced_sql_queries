@@ -1,5 +1,8 @@
 <?php
 include './conn.php';
+require_once __DIR__ . '/vendor/autoload.php'; 
+ob_start();  
+
 
 $sql_years = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y') AS year_value FROM contacts_classification ORDER BY start_date;";
 $result_years = $conn->query($sql_years);
@@ -42,6 +45,7 @@ if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
         </form>
     </div>
     
+
     
     <?php
 if (!empty($from_date) && !empty($to_date)) {
@@ -73,9 +77,13 @@ if (!empty($from_date) && !empty($to_date)) {
             $months[$month] = $month;
         }
     }
-
     sort($months);
     ?>
+     <form action="" method="POST">
+            <button type="submit" name="generate_pdf" class="btn btn-success">Export to PDF</button>
+            <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
+            <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
+        </form>
     <div class="container mt-4">
         <h6 class="form-label">Showing data from <?php echo $from_date;?> to <?php echo $to_date;?></h6>
     </div>
@@ -117,4 +125,37 @@ else {
 </body>
 </html>
 
-<?php $conn->close(); ?>
+<?php 
+
+if (isset($_POST['generate_pdf'])) {
+    ob_end_clean();  
+    $from_date = $_POST['from_date'];
+    $to_date = $_POST['to_date'];
+    $pdf = new TCPDF(); 
+    $pdf->AddPage();
+    $pdf->setTitle('Data Report '.$from_date.' to '.$to_date);
+    $pdf->setSubject('Setting Subject');
+    $pdf->Write(0,'Hello This pdf will be from '.$from_date.' to '.$to_date);
+    $pdf->Output();
+
+    // $pdf->SetFont('helvetica', '', 12);
+
+    // foreach($months as $month) {
+    //     $pdf->Cell(30, 10, $month, 1, 0, 'C');
+    // }
+    // $pdf->Ln();
+
+    // foreach ($data as $classification => $months_data) {
+    //     $pdf->Cell(60, 10, empty($classification) ? "Unclassified Data" : $classification, 1, 0, 'C');
+    //     foreach ($months as $month) {
+    //         $count = isset($months_data[$month]) ? $months_data[$month] : 0;
+    //         $pdf->Cell(30, 10, $count, 1, 0, 'C');
+    //     }
+    //     $pdf->Ln();
+    // }
+
+
+    // $pdf->Output('report_' . $from_date . ' to ' . $to_date . '.pdf', 'I');
+}
+$conn->close(); 
+?>

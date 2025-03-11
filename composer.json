@@ -1,0 +1,17 @@
+{
+    "name": "paavanvyas/advanced-sql-queries",
+    "autoload": {
+        "psr-4": {
+            "Tecnickcom\\Tcpdf\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "PaavanVyas",
+            "email": "paavan.vyas@invennico.com"
+        }
+    ],
+    "require": {
+        "tecnickcom/tcpdf": "^6.7"
+    }
+}
