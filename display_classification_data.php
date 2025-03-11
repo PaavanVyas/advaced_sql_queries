@@ -10,9 +10,10 @@ $result_years = $conn->query($sql_years);
 if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
     $from_date = $_POST['from_date'];
     $to_date = $_POST['to_date'];
-} else {
-    echo "No data submitted";
-}
+} 
+// else {
+//     echo "No data submitted";
+// }
 ?>
 
 <html>
@@ -79,14 +80,22 @@ if (!empty($from_date) && !empty($to_date)) {
     }
     sort($months);
     ?>
+    <?php
+    if($result->num_rows>0){
+    ?>
+    <div class="container">
      <form action="" method="POST">
-            <button type="submit" name="generate_pdf" class="btn btn-success">Export to PDF</button>
+            <button type="submit" name="generate_pdf" class="btn btn-primary">Download PDF</button>
             <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
             <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
         </form>
     <div class="container mt-4">
         <h6 class="form-label">Showing data from <?php echo $from_date;?> to <?php echo $to_date;?></h6>
     </div>
+    </div>
+    <?php
+    }
+    ?>
     <div class="container table-responsive">
         <table class="table table-bordered border-dark m-4 table-hover">
             <thead class="table-active">
@@ -131,31 +140,65 @@ if (isset($_POST['generate_pdf'])) {
     ob_end_clean();  
     $from_date = $_POST['from_date'];
     $to_date = $_POST['to_date'];
+    // $pdf = new TCPDF('L', 'mm', 'A4');
     $pdf = new TCPDF(); 
     $pdf->AddPage();
     $pdf->setTitle('Data Report '.$from_date.' to '.$to_date);
     $pdf->setSubject('Setting Subject');
-    $pdf->Write(0,'Hello This pdf will be from '.$from_date.' to '.$to_date);
-    $pdf->Output();
+    // $pdf->Write(0,'Hello This pdf will be from '.$from_date.' to '.$to_date);
+   
 
-    // $pdf->SetFont('helvetica', '', 12);
+    $pdf->SetFont('helvetica', '', 8);
 
+    // $pdf->Cell(40, 10, 'Classification',1);
     // foreach($months as $month) {
-    //     $pdf->Cell(30, 10, $month, 1, 0, 'C');
+        
+    //     $pdf->Cell(15, 10, $month, 1, 0, 'C');
+
     // }
     // $pdf->Ln();
 
     // foreach ($data as $classification => $months_data) {
-    //     $pdf->Cell(60, 10, empty($classification) ? "Unclassified Data" : $classification, 1, 0, 'C');
+    //     $pdf->Cell(40, 15, empty($classification) ? "Unclassified Data" : $classification, 1, 0, 'C');
     //     foreach ($months as $month) {
     //         $count = isset($months_data[$month]) ? $months_data[$month] : 0;
-    //         $pdf->Cell(30, 10, $count, 1, 0, 'C');
+    //         $pdf->Cell(15, 15, $count, 1, 0, 'C');
     //     }
     //     $pdf->Ln();
     // }
+    $generatereport = '<table class="table table-bordered border-dark m-4 table-hover" style="border: 1px solid black; border-collapse: collapse; margin: 10px;">';
+    $generatereport .= '<thead class="table-active">';
+    $generatereport .= '<tr>';
+    $generatereport .= '<th style="border: 1px solid black; padding: 8px; text-align: center;">Classification</th>';
 
+    foreach ($months as $month) {
+        $generatereport .= '<th style="border: 1px solid black; padding: 8px; text-align: center;">' . htmlspecialchars($month) . '</th>';
+    }
 
-    // $pdf->Output('report_' . $from_date . ' to ' . $to_date . '.pdf', 'I');
-}
+    $generatereport .= '</tr>';
+    $generatereport .= '</thead>';
+
+    $generatereport .= '<tbody class="table-group-divider bg-light text-dark">';
+
+    foreach ($data as $classification => $months_data) {
+        $generatereport .= '<tr>';
+        $generatereport .= '<td style="border: 1px solid black; padding: 8px; text-align: center;">' . htmlspecialchars(empty($classification) ? "Unclassified Data or Missing classification." : $classification) . '</td>';
+
+        foreach ($months as $month) {
+            $count = isset($months_data[$month]) ? $months_data[$month] : 0;
+            $generatereport .= '<td class="text-center" style="border: 1px solid black; padding: 8px; text-align: center;">' . $count . '</td>';
+        }
+
+        $generatereport .= '</tr>';
+    }
+
+    $generatereport .= '</tbody>';
+    $generatereport .= '</table>';
+
+        $pdf->Writehtml($generatereport,true,true,true,true,'');
+        $pdf->Output();
+
+        // $pdf->Output('report_' . $from_date . ' to ' . $to_date . '.pdf', 'I');
+    }
 $conn->close(); 
 ?>
