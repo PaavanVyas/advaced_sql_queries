@@ -66,15 +66,13 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
 
     $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
 
-
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $offset = ($page - 1) * $limit;
-
-        $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
-                FROM contacts_classification 
-                WHERE start_date BETWEEN '$from_date' AND '$to_date' 
-                GROUP BY classification, month
-                ORDER BY month";
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $offset = ($page - 1) * $limit;
+    $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
+            FROM contacts_classification 
+            WHERE start_date BETWEEN '$from_date' AND '$to_date' 
+            GROUP BY classification, month
+            ORDER BY month";
 
     $result = $conn->query($sql);
 
