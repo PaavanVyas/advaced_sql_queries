@@ -2,6 +2,7 @@
 include './conn.php';
 require_once __DIR__ . '/vendor/autoload.php'; 
 ob_start();  
+session_start();
 
 $sql_years = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y') AS year_value FROM contacts_classification ORDER BY start_date;";
 $result_years = $conn->query($sql_years);
@@ -27,6 +28,15 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
     </style>
 </head>
 <body>
+<?php
+        if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
+            $file_name = $_SESSION["filename"];
+        ?>
+        <div class="container mt-2">
+            <a href='path/to/your/directory/$filename' class="alert alert-warning w-100"><?php echo $file_name?> Completed. Click to Download</a>
+        </div>
+        <?php
+    }?>
     <div class="container mt-4">
         <div class="row">
         <form method="GET">
@@ -261,57 +271,66 @@ if (isset($_POST['generate_pdf'])) {
         // $pdf->Output('report_' . $from_date . ' to ' . $to_date . '.pdf', 'I');
     }
 
-if (isset($_POST['generate_csv'])) {
-    $from_date = $_POST['from_date'];
-    $to_date = $_POST['to_date'];
-    $filename = "classification_data_".$from_date."_".$to_date.".csv";
+    if (isset($_POST['generate_csv'])) {
+        $from_date = $_POST['from_date'];
+        $to_date = $_POST['to_date'];
+        $filename = "classification_data_".$from_date."_".$to_date."_".date("Y-m-d_H-i-s").".csv";
+        
+        // Save the file to the server
+        $file_path = "./csv_files/" . $filename;
+        $output = fopen($file_path, "w");
     
-    header("Content-Type: text/csv");
-    header("Content-Disposition: attachment; filename=$filename");
+        // Fetching distinct months
+        $sql = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y-%m') AS month 
+                FROM contacts_classification 
+                WHERE start_date BETWEEN '$from_date' AND '$to_date'
+                ORDER BY month";
     
-    $output = fopen("php://output", "w");
-    $sql = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y-%m') AS month 
-            FROM contacts_classification 
-            WHERE start_date BETWEEN '$from_date' AND '$to_date'
-            ORDER BY month";
-
-    $result = $conn->query($sql);
-    $months = [];
-
-    while ($row = $result->fetch_assoc()) {
-        $months[] = $row['month'];
-    }
-    ob_clean();
-    fputcsv($output, array_merge(["Classification"], $months));
-
-    $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
-            FROM contacts_classification 
-            WHERE start_date BETWEEN '$from_date' AND '$to_date' 
-            GROUP BY classification, month
-            ORDER BY month";
-
-    $result = $conn->query($sql);
-    $sliced_data = [];
-
-    while ($row = $result->fetch_assoc()) {
-        $classification = $row['classification'] ?: 'Unclassified Data';
-        $month = $row['month'];
-        $sliced_data[$classification][$month] = $row['count'];
-    }
-
-    foreach ($sliced_data as $classification => $months_data) {
-        $row = [$classification];
-        foreach ($months as $month) {
-            $row[] = isset($months_data[$month]) ? $months_data[$month] : 0;
+        $result = $conn->query($sql);
+        $months = [];
+    
+        while ($row = $result->fetch_assoc()) {
+            $months[] = $row['month'];
         }
-        fputcsv($output, $row);
+    
+        fputcsv($output, array_merge(["Classification"], $months));
+    
+        // Fetching the classification data
+        $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
+                FROM contacts_classification 
+                WHERE start_date BETWEEN '$from_date' AND '$to_date' 
+                GROUP BY classification, month
+                ORDER BY month";
+    
+        $result = $conn->query($sql);
+        $sliced_data = [];
+    
+        while ($row = $result->fetch_assoc()) {
+            $classification = $row['classification'] ?: 'Unclassified Data';
+            $month = $row['month'];
+            $sliced_data[$classification][$month] = $row['count'];
+        }
+    
+        // Writing data rows to the CSV
+        foreach ($sliced_data as $classification => $months_data) {
+            $row = [$classification];
+            foreach ($months as $month) {
+                $row[] = isset($months_data[$month]) ? $months_data[$month] : 0;
+            }
+            fputcsv($output, $row);
+        }
+    
+        // Storing session variables
+        $_SESSION["csv_generated"] = "True";
+        $_SESSION["filename"] = $filename;
+    
+        // Close the file after writing
+        fclose($output);
+    
+        // Redirect to a success page or provide a link to download the file
+        // header("Location: success_page.php?filename=" . urlencode($filename));
+        exit();
     }
-
-    fclose($output);
-    exit();
-}
     
-    
-    
-$conn->close(); 
+$conn->close();   
 ?>
