@@ -114,7 +114,7 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
                 
         </div>
         </div>
-        <div class="container">
+        <div>
         <form method="GET">
         <label for="limit">Select Limit:</label><br/>
         <select name="limit" id="limit" class="form-select w-25" required>
@@ -130,11 +130,11 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
     <input type="hidden" name="from_date" value="<?php echo htmlspecialchars($from_date, ENT_QUOTES, 'UTF-8'); ?>">
     <input type="hidden" name="to_date" value="<?php echo htmlspecialchars($to_date, ENT_QUOTES, 'UTF-8'); ?>">
     
-    <button type="submit" class="btn btn-primary mt-1">Submit</button>
+    <button type="submit" class="btn btn-primary mt-2">Submit</button>
 </form>
 </div>
 
-        <div class="container mt-4">
+        <div class=" mt-4">
             <h6 class="form-label">Showing data from <?php echo $from_date;?> to <?php echo $to_date;?></h6>
         </div>
         <?php
