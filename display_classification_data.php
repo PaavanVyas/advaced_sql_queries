@@ -3,7 +3,6 @@ include './conn.php';
 require_once __DIR__ . '/vendor/autoload.php'; 
 ob_start();  
 
-
 $sql_years = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y') AS year_value FROM contacts_classification ORDER BY start_date;";
 $result_years = $conn->query($sql_years);
 
@@ -33,29 +32,27 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
         <form method="GET">
     <h5>Select Year & Month Range</h5>
 
-    <?php if ($result_years->num_rows > 0) { ?>
-        <label>FROM:</label>
-        <input type="date" name="from_date" class="form-control w-25 ms-5" 
-            value="<?php echo isset($_GET['from_date']) ? $_GET['from_date'] : ''; ?>">
-
-        <label>TO:</label>
-        <input type="date" name="to_date" class="form-control w-25 ms-5" 
-            value="<?php echo isset($_GET['to_date']) ? $_GET['to_date'] : ''; ?>">
+    <?php if ($result_years->num_rows > 0) { ?> 
+        <div class="d-flex align-items-center mb-2">
+            <label class="me-3" style="width: 60px;">FROM:</label>
+            <input type="date" name="from_date" class="form-control w-25" value="<?php echo isset($_GET['from_date']) ? $_GET['from_date'] : ''; ?>">
+        </div>
+        <div class="d-flex align-items-center mb-2">
+            <label class="me-3" style="width: 60px;">TO:</label>
+            <input type="date" name="to_date" class="form-control w-25" value="<?php echo isset($_GET['to_date']) ? $_GET['to_date'] : ''; ?>">
+        </div>
 
         <div class="d-flex justify-content-between">
-            <button type="submit" class="btn btn-primary mt-2">Generate Report</button>
-        </div>
+            <div>
+                <button type="submit" class="btn btn-primary mt-2">Generate Report</button>
+            </div>
 
     <?php } else { ?>
         <p class='container alert alert-warning m-5'>No years found.</p>
     <?php } ?>
-</form>
-
-       
-
-    
+</form> 
     <?php
-if (!empty($from_date) && !empty($to_date)) {
+    if (!empty($from_date) && !empty($to_date)) {
     
     if(strtotime($from_date) > strtotime($to_date)) {
     ?></div>
@@ -65,15 +62,13 @@ if (!empty($from_date) && !empty($to_date)) {
 
     $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
 
-
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($page - 1) * $limit;
-
-$sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
-        FROM contacts_classification 
-        WHERE start_date BETWEEN '$from_date' AND '$to_date' 
-        GROUP BY classification, month
-        ORDER BY month";
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $offset = ($page - 1) * $limit;
+    $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
+            FROM contacts_classification 
+            WHERE start_date BETWEEN '$from_date' AND '$to_date' 
+            GROUP BY classification, month
+            ORDER BY month";
 
     $result = $conn->query($sql);
 
@@ -92,17 +87,17 @@ $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start
             $months[$month] = $month;
         }
     }
-    sort($months);
-    $rows_per_page = 5; 
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$rows_per_page = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
+        sort($months);
+        $rows_per_page = 5; 
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $rows_per_page = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
 
 
-$total_rows = count($data);
-$total_pages = ceil($total_rows / $rows_per_page);
+        $total_rows = count($data);
+        $total_pages = ceil($total_rows / $rows_per_page);
 
-$offset = ($page - 1) * $limit;
-$sliced_data = array_slice($data, $offset, $limit, true);
+        $offset = ($page - 1) * $limit;
+        $sliced_data = array_slice($data, $offset, $limit, true);
 
 
     ?>
@@ -121,12 +116,12 @@ $sliced_data = array_slice($data, $offset, $limit, true);
         </div>
         <div class="container">
         <form method="GET">
-        <label for="limit">Select Limit:</label>
-        <select name="limit" id="limit" required>
+        <label for="limit">Select Limit:</label><br/>
+        <select name="limit" id="limit" class="form-select w-25" required>
     <?php 
     $selected_limit = isset($_GET['limit']) ? $_GET['limit'] : '';
     for ($i = 1; $i <= 10; $i++) {
-        echo "<option value='$i' " . ($selected_limit == $i ? 'selected' : '') . ">$i</option>";
+        echo "<option value='$i' " . ($selected_limit == $i ? 'selected' : '') . " >$i</option>";
     }
     ?>
 </select>
@@ -135,7 +130,7 @@ $sliced_data = array_slice($data, $offset, $limit, true);
     <input type="hidden" name="from_date" value="<?php echo htmlspecialchars($from_date, ENT_QUOTES, 'UTF-8'); ?>">
     <input type="hidden" name="to_date" value="<?php echo htmlspecialchars($to_date, ENT_QUOTES, 'UTF-8'); ?>">
     
-    <button type="submit">Submit</button>
+    <button type="submit" class="btn btn-primary mt-1">Submit</button>
 </form>
 </div>
 
