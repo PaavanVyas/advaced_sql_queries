@@ -3,7 +3,6 @@ include './conn.php';
 require_once __DIR__ . '/vendor/autoload.php'; 
 ob_start();  
 session_start();
-
 $sql_years = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y') AS year_value FROM contacts_classification ORDER BY start_date;";
 $result_years = $conn->query($sql_years);
 
@@ -12,9 +11,6 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
     $to_date = $_GET['to_date'];
 }
 
-// else {
-//     echo "No data submitted";
-// }
 ?>
 
 <html>
@@ -22,18 +18,75 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
     <title>Classification Report</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* .table-responsive{
-            max-width:95%;
-        } */
-    </style>
+        .reduced-height {
+            padding: 5px !important;  
+            font-size: 14px;          
+            line-height: 1.2;          
+            display: flex;
+            align-items: center;
+            color:black;
+        }
+
+.reduced-height button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+a {
+    text-decoration: none !important; /* Ensures underline is removed */
+}
+
+/* .reduced-height button img {
+    width: 16px;   
+    height: 16px;
+} */
+</style>
 </head>
 <body>
 <?php
-        if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
+        if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") { 
             $file_name = $_SESSION["filename"];
         ?>
-        <div class="container mt-2">
-            <a href='path/to/your/directory/$filename' class="alert alert-warning w-100"><?php echo $file_name?> Completed. Click to Download</a>
+        <div class="container mt-2 d-flex justify-content-between alert alert-warning reduced-height">
+            <div class="m-0">
+                <a href='./csv_files/<?php echo $file_name;?>' class="text-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-0-hover"><?php echo $file_name?> :Completed. Click to Download</a>
+            </div>
+            <div class="m-0">
+                <form action="" method="POST">
+                        <button class="btn bg-transperent" name="cancel-export-csv" type="submit">
+                            <img src="./images/cancel-button.png" alt="cancel image">
+                        </button>       
+                </form>
+
+            </div>
+        </div>
+        <?php
+    }
+     if (isset($_SESSION["pdf_generated"]) && $_SESSION["pdf_generated"] == "True") { 
+            $file_name = $_SESSION["pdf_filename"];
+        ?>
+        <div class="container mt-2 d-flex justify-content-between alert alert-warning reduced-height">
+            <div class="m-0">
+            <a href="./csv_files/<?php echo $file_name;?>" 
+   download="<?php echo $file_name;?>" 
+   class="text-dark link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-0-hover">
+   <?php echo $file_name?> : Completed. Click to Download
+</a>
+
+            </div>
+            <div class="m-0">
+                <form action="" method="POST">
+                        <button class="btn bg-transperent" name="cancel-export-pdf" type="submit">
+                            <img src="./images/cancel-button.png" alt="cancel image">
+                        </button>       
+                </form>
+
+            </div>
         </div>
         <?php
     }?>
@@ -116,15 +169,15 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
     ?>
     <div class="d-flex align-items-start">
          <form action="" method="POST">
-            <button type="submit" name="generate_pdf" class="btn btn-primary ms-3">Download PDF</button>
             <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
             <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
+            <button type="submit" name="generate_pdf" class="btn btn-primary ms-3">Download PDF</button>
         </form>
 
         <form action="" method="POST">
-            <button type = "submit" name="generate_csv" class="btn btn-primary ms-3">Download CSV</button>
             <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
             <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
+            <button type="submit" name="generate_csv" class="btn btn-primary ms-3">Download CSV</button>
         </form> 
     </div>        
         </div>
@@ -228,14 +281,19 @@ else {
 
 if (isset($_POST['generate_pdf'])) {
     ob_end_clean();  
+
     $from_date = $_POST['from_date'];
     $to_date = $_POST['to_date'];
-    // $pdf = new TCPDF('L', 'mm', 'A4');
+    date_default_timezone_set('Asia/Kolkata');
+    $filename = "classification_report_".date("Y-m-d_H-i-s").".pdf";
+    
+
     $pdf = new TCPDF(); 
     $pdf->AddPage();
-    $pdf->setTitle('Data_Report_'.$from_date.'_to_'.$to_date);
+    $pdf->setTitle('Data_Report_' . $from_date . '_to_' . $to_date);
     $pdf->setSubject('Setting Subject');
     $pdf->SetFont('helvetica', '', 8);
+
     $generatereport = '<table class="table table-bordered border-dark m-4 table-hover" style="border: 1px solid black; border-collapse: collapse; margin: 10px;">';
     $generatereport .= '<thead class="table-active">';
     $generatereport .= '<tr>';
@@ -247,7 +305,6 @@ if (isset($_POST['generate_pdf'])) {
 
     $generatereport .= '</tr>';
     $generatereport .= '</thead>';
-
     $generatereport .= '<tbody class="table-group-divider bg-light text-dark">';
 
     foreach ($data as $classification => $months_data) {
@@ -265,72 +322,98 @@ if (isset($_POST['generate_pdf'])) {
     $generatereport .= '</tbody>';
     $generatereport .= '</table>';
 
-        $pdf->Writehtml($generatereport,true,true,true,true,'');
-        $pdf->Output();
+    $pdf->Writehtml($generatereport, true, true, true, true, '');
 
-        // $pdf->Output('report_' . $from_date . ' to ' . $to_date . '.pdf', 'I');
+    $directory = __DIR__ . "/csv_files/";
+    if (!is_dir($directory)) {
+        mkdir($directory, 0777, true); 
+    }
+    $file_path = $directory . $filename;
+
+    $pdf->Output($file_path, 'F');
+
+
+    $_SESSION["pdf_generated"] = "True";
+    $_SESSION["pdf_filename"] = $filename;
+
+    // **Redirect user to display download link**
+    header("Location: " . $_SERVER['PHP_SELF'] . "?" . $_SERVER['QUERY_STRING']);
+    exit();
+}
+
+
+if (isset($_POST['generate_csv'])) {
+    echo "form submitted";
+    $from_date = $_POST['from_date'];
+    $to_date = $_POST['to_date'];
+    date_default_timezone_set('Asia/Kolkata');
+    $filename = "classification_report_".date("Y-m-d_H-i-s").".csv";
+    
+    $file_path = "./csv_files/" . $filename;
+    $output = fopen($file_path, "w");
+
+    $sql = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y-%m') AS month 
+            FROM contacts_classification 
+            WHERE start_date BETWEEN '$from_date' AND '$to_date'
+            ORDER BY month";
+
+    $result = $conn->query($sql);
+    $months = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $months[] = $row['month'];
     }
 
-    if (isset($_POST['generate_csv'])) {
-        $from_date = $_POST['from_date'];
-        $to_date = $_POST['to_date'];
-        $filename = "classification_data_".$from_date."_".$to_date."_".date("Y-m-d_H-i-s").".csv";
-        
-        // Save the file to the server
-        $file_path = "./csv_files/" . $filename;
-        $output = fopen($file_path, "w");
-    
-        // Fetching distinct months
-        $sql = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y-%m') AS month 
-                FROM contacts_classification 
-                WHERE start_date BETWEEN '$from_date' AND '$to_date'
-                ORDER BY month";
-    
-        $result = $conn->query($sql);
-        $months = [];
-    
-        while ($row = $result->fetch_assoc()) {
-            $months[] = $row['month'];
-        }
-    
-        fputcsv($output, array_merge(["Classification"], $months));
-    
-        // Fetching the classification data
-        $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
-                FROM contacts_classification 
-                WHERE start_date BETWEEN '$from_date' AND '$to_date' 
-                GROUP BY classification, month
-                ORDER BY month";
-    
-        $result = $conn->query($sql);
-        $sliced_data = [];
-    
-        while ($row = $result->fetch_assoc()) {
-            $classification = $row['classification'] ?: 'Unclassified Data';
-            $month = $row['month'];
-            $sliced_data[$classification][$month] = $row['count'];
-        }
-    
-        // Writing data rows to the CSV
-        foreach ($sliced_data as $classification => $months_data) {
-            $row = [$classification];
-            foreach ($months as $month) {
-                $row[] = isset($months_data[$month]) ? $months_data[$month] : 0;
-            }
-            fputcsv($output, $row);
-        }
-    
-        // Storing session variables
-        $_SESSION["csv_generated"] = "True";
-        $_SESSION["filename"] = $filename;
-    
-        // Close the file after writing
-        fclose($output);
-    
-        // Redirect to a success page or provide a link to download the file
-        // header("Location: success_page.php?filename=" . urlencode($filename));
-        exit();
+    fputcsv($output, array_merge(["Classification"], $months));
+
+    // Fetching the classification data
+    $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
+            FROM contacts_classification 
+            WHERE start_date BETWEEN '$from_date' AND '$to_date' 
+            GROUP BY classification, month
+            ORDER BY month";
+
+    $result = $conn->query($sql);
+    $sliced_data = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $classification = $row['classification'] ?: 'Unclassified Data';
+        $month = $row['month'];
+        $sliced_data[$classification][$month] = $row['count'];
     }
+
+    // Writing data rows to the CSV
+    foreach ($sliced_data as $classification => $months_data) {
+        $row = [$classification];
+        foreach ($months as $month) {
+            $row[] = isset($months_data[$month]) ? $months_data[$month] : 0;
+        }
+        fputcsv($output, $row);
+    }
+
+    $_SESSION["csv_generated"] = "True";
+    $_SESSION["filename"] = $filename;
+    echo "Session created";
+
+    fclose($output);
+    header("Location: " . $_SERVER['PHP_SELF'] . "?" . $_SERVER['QUERY_STRING']);
+
+    exit();
+}
+if(isset($_POST["cancel-export-csv"])){
+
+        unset($_SESSION["csv_generated"]);
+
+    header("Location: " . $_SERVER['PHP_SELF'] . "?" . $_SERVER['QUERY_STRING']);
+}
+
+if(isset($_POST["cancel-export-pdf"])){
+
+    unset($_SESSION["pdf_generated"]);
+
+header("Location: " . $_SERVER['PHP_SELF'] . "?" . $_SERVER['QUERY_STRING']);
+}
+
     
 $conn->close();   
 ?>
