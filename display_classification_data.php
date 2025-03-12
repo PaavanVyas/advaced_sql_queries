@@ -104,19 +104,19 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
     <?php
     if($result->num_rows>0){
     ?>
-
-
+    <div class="d-flex align-items-start">
          <form action="" method="POST">
-            <button type="submit" name="generate_pdf" class="btn btn-primary">Download PDF</button>
+            <button type="submit" name="generate_pdf" class="btn btn-primary ms-3">Download PDF</button>
             <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
             <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
         </form>
 
         <form action="" method="POST">
-            <button type = "submit" name="generate_csv" class="btn btn-primary">Download CSV</button>
+            <button type = "submit" name="generate_csv" class="btn btn-primary ms-3">Download CSV</button>
             <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
             <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
-        </form>         
+        </form> 
+    </div>        
         </div>
         </div>
         <div class="container">
@@ -135,7 +135,7 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
     <input type="hidden" name="from_date" value="<?php echo htmlspecialchars($from_date, ENT_QUOTES, 'UTF-8'); ?>">
     <input type="hidden" name="to_date" value="<?php echo htmlspecialchars($to_date, ENT_QUOTES, 'UTF-8'); ?>">
     
-    <button type="submit" class="btn btn-primary mt-1">Submit</button>
+    <button type="submit" class="btn btn-primary mt-2">Submit</button>
 </form>
 </div>
 
