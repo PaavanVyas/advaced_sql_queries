@@ -3,7 +3,6 @@ include './conn.php';
 require_once __DIR__ . '/vendor/autoload.php'; 
 ob_start();  
 
-
 $sql_years = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y') AS year_value FROM contacts_classification ORDER BY start_date;";
 $result_years = $conn->query($sql_years);
 
@@ -33,28 +32,25 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
         <form method="GET">
     <h5>Select Year & Month Range</h5>
 
-    <?php if ($result_years->num_rows > 0) { ?>
-        <label>FROM:</label>
-        <input type="date" name="from_date" class="form-control w-25 ms-5" 
-            value="<?php echo isset($_GET['from_date']) ? $_GET['from_date'] : ''; ?>">
-
-        <label>TO:</label>
-        <input type="date" name="to_date" class="form-control w-25 ms-5" 
-            value="<?php echo isset($_GET['to_date']) ? $_GET['to_date'] : ''; ?>">
+    <?php if ($result_years->num_rows > 0) { ?> 
+        <div class="d-flex align-items-center mb-2">
+            <label class="me-3" style="width: 60px;">FROM:</label>
+            <input type="date" name="from_date" class="form-control w-25" value="<?php echo isset($_GET['from_date']) ? $_GET['from_date'] : ''; ?>">
+        </div>
+        <div class="d-flex align-items-center mb-2">
+            <label class="me-3" style="width: 60px;">TO:</label>
+            <input type="date" name="to_date" class="form-control w-25" value="<?php echo isset($_GET['to_date']) ? $_GET['to_date'] : ''; ?>">
+        </div>
 
         <div class="d-flex justify-content-between">
             <div>
-            <button type="submit" class="btn btn-primary mt-2">Generate Report</button>
-        </div>
+                <button type="submit" class="btn btn-primary mt-2">Generate Report</button>
+            </div>
 
     <?php } else { ?>
         <p class='container alert alert-warning m-5'>No years found.</p>
     <?php } ?>
-</form>
-
-       
-
-    
+</form> 
     <?php
     if (!empty($from_date) && !empty($to_date)) {
     
