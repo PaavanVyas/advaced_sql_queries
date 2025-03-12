@@ -107,11 +107,16 @@ if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
 
 
          <form action="" method="POST">
-         <button type="submit" name="generate_pdf" class="btn btn-primary">Download PDF</button>
-                <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
-                <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
-            </form>
-                
+            <button type="submit" name="generate_pdf" class="btn btn-primary">Download PDF</button>
+            <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
+            <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
+        </form>
+
+        <form action="" method="POST">
+            <button type = "submit" name="generate_csv" class="btn btn-primary">Download CSV</button>
+            <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
+            <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
+        </form>         
         </div>
         </div>
         <div class="container">
@@ -220,27 +225,7 @@ if (isset($_POST['generate_pdf'])) {
     $pdf->AddPage();
     $pdf->setTitle('Data_Report_'.$from_date.'_to_'.$to_date);
     $pdf->setSubject('Setting Subject');
-    // $pdf->Write(0,'Hello This pdf will be from '.$from_date.' to '.$to_date);
-   
-
     $pdf->SetFont('helvetica', '', 8);
-
-    // $pdf->Cell(40, 10, 'Classification',1);
-    // foreach($months as $month) {
-        
-    //     $pdf->Cell(15, 10, $month, 1, 0, 'C');
-
-    // }
-    // $pdf->Ln();
-
-    // foreach ($data as $classification => $months_data) {
-    //     $pdf->Cell(40, 15, empty($classification) ? "Unclassified Data" : $classification, 1, 0, 'C');
-    //     foreach ($months as $month) {
-    //         $count = isset($months_data[$month]) ? $months_data[$month] : 0;
-    //         $pdf->Cell(15, 15, $count, 1, 0, 'C');
-    //     }
-    //     $pdf->Ln();
-    // }
     $generatereport = '<table class="table table-bordered border-dark m-4 table-hover" style="border: 1px solid black; border-collapse: collapse; margin: 10px;">';
     $generatereport .= '<thead class="table-active">';
     $generatereport .= '<tr>';
@@ -275,5 +260,58 @@ if (isset($_POST['generate_pdf'])) {
 
         // $pdf->Output('report_' . $from_date . ' to ' . $to_date . '.pdf', 'I');
     }
+
+if (isset($_POST['generate_csv'])) {
+    $from_date = $_POST['from_date'];
+    $to_date = $_POST['to_date'];
+    $filename = "classification_data_".$from_date."_".$to_date.".csv";
+    
+    header("Content-Type: text/csv");
+    header("Content-Disposition: attachment; filename=$filename");
+    
+    $output = fopen("php://output", "w");
+    $sql = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y-%m') AS month 
+            FROM contacts_classification 
+            WHERE start_date BETWEEN '$from_date' AND '$to_date'
+            ORDER BY month";
+
+    $result = $conn->query($sql);
+    $months = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $months[] = $row['month'];
+    }
+    ob_clean();
+    fputcsv($output, array_merge(["Classification"], $months));
+
+    $sql = "SELECT classification, COUNT(classification) AS count, DATE_FORMAT(start_date, '%Y-%m') AS month 
+            FROM contacts_classification 
+            WHERE start_date BETWEEN '$from_date' AND '$to_date' 
+            GROUP BY classification, month
+            ORDER BY month";
+
+    $result = $conn->query($sql);
+    $sliced_data = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $classification = $row['classification'] ?: 'Unclassified Data';
+        $month = $row['month'];
+        $sliced_data[$classification][$month] = $row['count'];
+    }
+
+    foreach ($sliced_data as $classification => $months_data) {
+        $row = [$classification]; // First column is classification
+        foreach ($months as $month) {
+            $row[] = isset($months_data[$month]) ? $months_data[$month] : 0;
+        }
+        fputcsv($output, $row);
+    }
+
+    fclose($output);
+    exit();
+}
+    
+    
+    
 $conn->close(); 
 ?>
