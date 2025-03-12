@@ -300,7 +300,7 @@ if (isset($_POST['generate_csv'])) {
     }
 
     foreach ($sliced_data as $classification => $months_data) {
-        $row = [$classification]; // First column is classification
+        $row = [$classification];
         foreach ($months as $month) {
             $row[] = isset($months_data[$month]) ? $months_data[$month] : 0;
         }
