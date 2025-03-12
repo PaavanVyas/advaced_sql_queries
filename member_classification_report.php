@@ -1,16 +1,19 @@
 <?php
     include './conn.php';
-    $sql = "SELECT CONCAT(first_name, ' ', last_name) AS Full_Name, 
-    email_address, 
-    cell_phone, 
-    contacts_classification.classification AS classification, 
-    start_date, 
-    expiry_date
-    FROM contacts 
-    JOIN contacts_classification 
-    ON contacts.contactid = contacts_classification.contactid"; 
+    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
+$sql = "SELECT CONCAT(first_name, ' ', last_name) AS Full_Name, 
+        email_address, 
+        cell_phone, 
+        contacts_classification.classification AS classification, 
+        start_date, 
+        expiry_date
+        FROM contacts 
+        JOIN contacts_classification 
+        ON contacts.contactid = contacts_classification.contactid
+        LIMIT $limit";  // Removed backticks around $limit
 
 $result = $conn->query($sql);
+
 
 ?>
 <html>
@@ -45,6 +48,22 @@ while($row=$result->fetch_assoc()){
 }
 ?>
 </table>
+<div>
+        <form method="GET">
+        <label for="limit">Select Limit:</label><br/>
+        <select name="limit" id="limit" class="form-select w-25" required>
+    <?php 
+    $selected_limit = isset($_GET['limit']) ? $_GET['limit'] : '';
+    for ($i = 1; $i <= 10; $i++) {
+        echo "<option value='$i' " . ($selected_limit == $i ? 'selected' : '') . " >$i</option>";
+    }
+    ?>
+</select>
+
+    
+    <button type="submit" class="btn btn-primary mt-2">Submit</button>
+</form>
+</div>
 </div>
 </body>
 </html>
