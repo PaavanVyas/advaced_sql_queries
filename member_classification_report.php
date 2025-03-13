@@ -1,6 +1,13 @@
 <?php
 include './conn.php';
 $query_string = $_SERVER['QUERY_STRING'];
+
+if (!empty($_GET)) { 
+
+  } else {
+
+  }
+
 if(isset($_GET['url'])){
     $query_string = $_GET['url'];
 }
@@ -31,7 +38,7 @@ $total_sql = "SELECT COUNT(*) AS total FROM contacts
               ON contacts.contactid = contacts_classification.contactid";
 if (!empty($classification_search)) {
     $classification_search = mysqli_real_escape_string($conn, $classification_search);
-    // If it's the first condition, use WHERE, otherwise use AND
+
     $total_sql .= " WHERE contacts_classification.classification = '$classification_search'";
 }
 
@@ -45,9 +52,8 @@ if (!empty($category_search)) {
     }
 }
 
-// Check if both from_date and to_date are not empty
+
 if (!empty($from_date) && !empty($to_date)) {
-    // If we already have a WHERE condition, add AND, else use WHERE
     if (strpos($total_sql, "WHERE") !== false) {
         $total_sql .= " AND start_date BETWEEN '$from_date' AND '$to_date'";
     } else {
@@ -78,9 +84,9 @@ if (!empty($classification_search)) {
     $sql .= " WHERE contacts_classification.classification = '$classification_search'";
 }
 
-// Check if category_search is not empty
+
 if (!empty($category_search)) {
-    // If we already have a WHERE condition, add AND, else use WHERE
+
     if (strpos($sql, "WHERE") !== false) {
         $sql .= " AND contacts.category = '$category_search'";
     } else {
@@ -88,9 +94,7 @@ if (!empty($category_search)) {
     }
 }
 
-// Check if both from_date and to_date are not empty
 if (!empty($from_date) && !empty($to_date)) {
-    // If we already have a WHERE condition, add AND, else use WHERE
     if (strpos($sql, "WHERE") !== false) {
         $sql .= " AND start_date BETWEEN '$from_date' AND '$to_date'";
     } else {
@@ -98,7 +102,7 @@ if (!empty($from_date) && !empty($to_date)) {
     }
 }
 $sql .= " LIMIT $limit OFFSET $offset";
-echo $sql;
+
 
 $result = $conn-> query($sql);
 ?>
@@ -154,7 +158,9 @@ $result = $conn-> query($sql);
 </form>
 
     </div>
-    
+    <?php
+    if (count($_GET)>1) { 
+    ?>
     <table class="table table-bordered mt-2">
         <tr>
             <td>Full Name</td>
@@ -220,7 +226,9 @@ $result = $conn-> query($sql);
         </ul>
     </nav>
 </div>
-
+<?php
+    }
+?>
 
 </body>
 </html>
