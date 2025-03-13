@@ -30,13 +30,29 @@ $total_sql = "SELECT COUNT(*) AS total FROM contacts
               JOIN contacts_classification 
               ON contacts.contactid = contacts_classification.contactid";
 if (!empty($classification_search)) {
-    $total_sql .= " WHERE contacts_classification.classification LIKE '%$classification_search%'";
+    $classification_search = mysqli_real_escape_string($conn, $classification_search);
+    // If it's the first condition, use WHERE, otherwise use AND
+    $total_sql .= " WHERE contacts_classification.classification = '$classification_search'";
 }
-if(!empty($category_search)){
-    $total_sql .= " WHERE contacts.category LIKE '%$category_search%'";
+
+// Check if category_search is not empty
+if (!empty($category_search)) {
+    // If we already have a WHERE condition, add AND, else use WHERE
+    if (strpos($total_sql, "WHERE") !== false) {
+        $total_sql .= " AND contacts.category = '$category_search'";
+    } else {
+        $total_sql .= " WHERE contacts.category ='$category_search'";
+    }
 }
-if(!empty($from_date)&&!empty($to_date)){
-    $total_sql .= " WHERE start_date BETWEEN '$from_date' AND '$to_date'";
+
+// Check if both from_date and to_date are not empty
+if (!empty($from_date) && !empty($to_date)) {
+    // If we already have a WHERE condition, add AND, else use WHERE
+    if (strpos($total_sql, "WHERE") !== false) {
+        $total_sql .= " AND start_date BETWEEN '$from_date' AND '$to_date'";
+    } else {
+        $total_sql .= " WHERE start_date BETWEEN '$from_date' AND '$to_date'";
+    }
 }
 $total_result = $conn->query($total_sql);
 $total_row = $total_result->fetch_assoc();
@@ -58,20 +74,33 @@ $sql = "SELECT CONCAT(first_name, ' ', last_name) AS Full_Name,
 
 if (!empty($classification_search)) {
     $classification_search = mysqli_real_escape_string($conn, $classification_search);
+    // If it's the first condition, use WHERE, otherwise use AND
     $sql .= " WHERE contacts_classification.classification = '$classification_search'";
 }
 
-if(!empty($category_search)){
-    echo $category_search;
-    $sql .= " WHERE contacts.category LIKE '%Staff%'";
+// Check if category_search is not empty
+if (!empty($category_search)) {
+    // If we already have a WHERE condition, add AND, else use WHERE
+    if (strpos($sql, "WHERE") !== false) {
+        $sql .= " AND contacts.category = '$category_search'";
+    } else {
+        $sql .= " WHERE contacts.category ='$category_search'";
+    }
+}
 
-}  
-if(!empty($from_date)&&!empty($to_date)){
-    $sql .= " WHERE start_date BETWEEN '$from_date' AND '$to_date'";
+// Check if both from_date and to_date are not empty
+if (!empty($from_date) && !empty($to_date)) {
+    // If we already have a WHERE condition, add AND, else use WHERE
+    if (strpos($sql, "WHERE") !== false) {
+        $sql .= " AND start_date BETWEEN '$from_date' AND '$to_date'";
+    } else {
+        $sql .= " WHERE start_date BETWEEN '$from_date' AND '$to_date'";
+    }
 }
 $sql .= " LIMIT $limit OFFSET $offset";
+echo $sql;
 
-$result = $conn->query($sql);
+$result = $conn-> query($sql);
 ?>
 
 <html>
@@ -85,14 +114,10 @@ $result = $conn->query($sql);
         <form action="" method="get">
             <label>Search by classification</label>
             <input type="text" name="classification_search" value="<?php echo isset($_GET['classification_search']) ? htmlspecialchars($_GET['classification_search']) : '' ?>">
-            <input type="submit">
-        </form>
-        <form action="" method="get">
+            
             <label>Search by category</label>
             <input type="text" name="category_search" value="<?php echo isset($_GET['category_search']) ? htmlspecialchars($_GET['category_search']) : '' ?>">
-            <input type="submit">
-        </form>
-        <form action="" method="get">
+            
             <label>Search by Membership Date</label>
             <input type="date" placeholder="from_date" name="from_date" value="<?php echo isset($_GET['from_date']) ? htmlspecialchars($_GET['from_date']):''?>">
             <input type="date" placeholder="to_date" name="to_date" value="<?php echo isset($_GET['to_date']) ? htmlspecialchars($_GET['to_date']):''?>">
@@ -112,13 +137,12 @@ $result = $conn->query($sql);
         ?>
     </select>
 
-    <!-- Add hidden inputs for all other existing parameters -->
-    <?php
-    // Parse the current query string and remove 'limit' if present (because it's being handled here)
-    $query_params = $_GET;
-    unset($query_params['limit']); // Don't pass the 'limit' parameter as it will be set by the form
 
-    // Create hidden input fields for each parameter
+    <?php
+    
+    $query_params = $_GET;
+    unset($query_params['limit']); 
+
     foreach ($query_params as $key => $value) {
         if (!empty($value)) {
             echo "<input type='hidden' name='" . htmlspecialchars($key) . "' value='" . htmlspecialchars($value) . "'>";
@@ -139,11 +163,13 @@ $result = $conn->query($sql);
             <td>Classification</td>
             <td>Start Date</td>
             <td>Expiry Date</td>
+            <td>category</td>
         </tr>
 
         <?php
         while($row = $result->fetch_assoc()){
             ?>
+            
             <tr>
                 <td><?php echo decryptItShared($row["Full_Name"]);?></td>
                 <td><?php echo decryptItShared($row["email_address"]);?></td>
@@ -151,6 +177,7 @@ $result = $conn->query($sql);
                 <td><?php echo $row["classification"];?></td>
                 <td><?php echo $row["start_date"];?></td>
                 <td><?php echo $row["expiry_date"];?></td>
+                <td><?php echo $row["category"];?></td>
             </tr>
         <?php
         }
