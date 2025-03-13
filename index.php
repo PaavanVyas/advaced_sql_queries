@@ -8,16 +8,20 @@
 </head>
 <body>
 
+
     <select id="mySelect">
         <option value="">Select an option</option>
         <option value="classificationData">Classification Data</option>
         <option value="classificationReport">Member classification_report_</option>
     </select>
-
+    <?php
+$query_string = $_SERVER['QUERY_STRING'];
+echo $query_string;
+?>
     <div id="result"></div>
 
     <script>
-        // jQuery to handle the change event
+
         $('#mySelect').change(function() {
             const selectedValue = $(this).val();
             const resultDiv = $('#result');
