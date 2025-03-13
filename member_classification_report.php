@@ -1,10 +1,8 @@
 <?php
 include './conn.php';
 $query_string = $_SERVER['QUERY_STRING'];
-// echo $query_string;
 if(isset($_GET['url'])){
     $query_string = $_GET['url'];
-    // echo $query_string;
 }
 
 parse_str($query_string, $query_params);
@@ -59,11 +57,14 @@ $sql = "SELECT CONCAT(first_name, ' ', last_name) AS Full_Name,
         ON contacts.contactid = contacts_classification.contactid";
 
 if (!empty($classification_search)) {
+    $classification_search = mysqli_real_escape_string($conn, $classification_search);
     $sql .= " WHERE contacts_classification.classification = '$classification_search'";
 }
 
 if(!empty($category_search)){
-    $sql .= " WHERE contacts.category = '$category_search'";
+    echo $category_search;
+    $sql .= " WHERE contacts.category LIKE '%Staff%'";
+
 }  
 if(!empty($from_date)&&!empty($to_date)){
     $sql .= " WHERE start_date BETWEEN '$from_date' AND '$to_date'";
@@ -79,20 +80,19 @@ $result = $conn->query($sql);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-
-
 <div class="container">
-    <div class="container">
+    <div>
         <form action="" method="get">
             <label>Search by classification</label>
             <input type="text" name="classification_search" value="<?php echo isset($_GET['classification_search']) ? htmlspecialchars($_GET['classification_search']) : '' ?>">
-            <input type="text" name="url" value="<?php echo $query_string;?>" hidden>
-           
-        
+            <input type="submit">
+        </form>
+        <form action="" method="get">
             <label>Search by category</label>
             <input type="text" name="category_search" value="<?php echo isset($_GET['category_search']) ? htmlspecialchars($_GET['category_search']) : '' ?>">
-           
-        
+            <input type="submit">
+        </form>
+        <form action="" method="get">
             <label>Search by Membership Date</label>
             <input type="date" placeholder="from_date" name="from_date" value="<?php echo isset($_GET['from_date']) ? htmlspecialchars($_GET['from_date']):''?>">
             <input type="date" placeholder="to_date" name="to_date" value="<?php echo isset($_GET['to_date']) ? htmlspecialchars($_GET['to_date']):''?>">
@@ -112,11 +112,13 @@ $result = $conn->query($sql);
         ?>
     </select>
 
-
+    <!-- Add hidden inputs for all other existing parameters -->
     <?php
+    // Parse the current query string and remove 'limit' if present (because it's being handled here)
     $query_params = $_GET;
-    unset($query_params['limit']); 
+    unset($query_params['limit']); // Don't pass the 'limit' parameter as it will be set by the form
 
+    // Create hidden input fields for each parameter
     foreach ($query_params as $key => $value) {
         if (!empty($value)) {
             echo "<input type='hidden' name='" . htmlspecialchars($key) . "' value='" . htmlspecialchars($value) . "'>";
@@ -126,9 +128,7 @@ $result = $conn->query($sql);
 
     <button type="submit" class="btn btn-primary mt-2">Submit</button>
 </form>
-<?php
-if(!empty($_GET)){
-?>
+
     </div>
     
     <table class="table table-bordered mt-2">
@@ -199,7 +199,6 @@ if(!empty($_GET)){
 </html>
 
 <?php
-}
 function decryptItShared($q) {
     if ($q != '') {
         $cryptKey  = 'qJB0rGtIn5UB1xG03efyCp';
@@ -219,5 +218,4 @@ function decryptItShared($q) {
         return implode(' ', $decrypted);
     }
 }
-
 ?>
