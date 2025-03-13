@@ -1,28 +1,75 @@
 <?php
 include './conn.php';
+$query_string = $_SERVER['QUERY_STRING'];
+if(isset($_GET['url'])){
+    $query_string = $_GET['url'];
+}
+
+parse_str($query_string, $query_params);
+
+
+unset($query_params['page']);
+
+$new_query_string = http_build_query($query_params);
+
+
 
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if (isset($_GET['classification_search']) && !empty($_GET['classification_search'])) {
+    $classification_search = $_GET['classification_search'];
+}
+if (isset($_GET['category_search']) && !empty($_GET['category_search'])) {
+    $category_search = $_GET['category_search'];
+}
+$from_date = isset($_GET['from_date']) ? $_GET['from_date'] : '';
+$to_date = isset($_GET['to_date']) ? $_GET['to_date'] : '';
 $offset = ($page - 1) * $limit;
 
 $total_sql = "SELECT COUNT(*) AS total FROM contacts 
               JOIN contacts_classification 
               ON contacts.contactid = contacts_classification.contactid";
+if (!empty($classification_search)) {
+    $total_sql .= " WHERE contacts_classification.classification LIKE '%$classification_search%'";
+}
+if(!empty($category_search)){
+    $total_sql .= " WHERE contacts.category LIKE '%$category_search%'";
+}
+if(!empty($from_date)&&!empty($to_date)){
+    $total_sql .= " WHERE start_date BETWEEN '$from_date' AND '$to_date'";
+}
 $total_result = $conn->query($total_sql);
 $total_row = $total_result->fetch_assoc();
 $total_rows = $total_row['total'];
 
+$total_pages = ceil($total_rows / $limit);
+
 
 $sql = "SELECT CONCAT(first_name, ' ', last_name) AS Full_Name, 
                email_address, 
-               cell_phone, 
+               cell_phone,
+               contacts.category AS category, 
                contacts_classification.classification AS classification, 
                start_date, 
                expiry_date
-        FROM contacts 
-        JOIN contacts_classification 
-        ON contacts.contactid = contacts_classification.contactid
-        LIMIT $limit OFFSET $offset"; 
+        FROM contacts
+        LEFT JOIN contacts_classification
+        ON contacts.contactid = contacts_classification.contactid";
+
+if (!empty($classification_search)) {
+    $classification_search = mysqli_real_escape_string($conn, $classification_search);
+    $sql .= " WHERE contacts_classification.classification = '$classification_search'";
+}
+
+if(!empty($category_search)){
+    echo $category_search;
+    $sql .= " WHERE contacts.category LIKE '%Staff%'";
+
+}  
+if(!empty($from_date)&&!empty($to_date)){
+    $sql .= " WHERE start_date BETWEEN '$from_date' AND '$to_date'";
+}
+$sql .= " LIMIT $limit OFFSET $offset";
 
 $result = $conn->query($sql);
 ?>
@@ -34,19 +81,56 @@ $result = $conn->query($sql);
 </head>
 <body>
 <div class="container">
-    <form method="GET">
-        <label for="limit">Select Limit:</label><br/>
-        <select name="limit" id="limit" class="form-select w-25" required>
-            <?php 
-            $selected_limit = isset($_GET['limit']) ? $_GET['limit'] : '';
-            for ($i = 5; $i <= 200; $i += 5) {
-                echo "<option value='$i' " . ($selected_limit == $i ? 'selected' : '') . " >$i</option>";
-            }
-            ?>
-        </select>
-        <button type="submit" class="btn btn-primary mt-2">Submit</button>
-    </form>
+    <div>
+        <form action="" method="get">
+            <label>Search by classification</label>
+            <input type="text" name="classification_search" value="<?php echo isset($_GET['classification_search']) ? htmlspecialchars($_GET['classification_search']) : '' ?>">
+            <input type="submit">
+        </form>
+        <form action="" method="get">
+            <label>Search by category</label>
+            <input type="text" name="category_search" value="<?php echo isset($_GET['category_search']) ? htmlspecialchars($_GET['category_search']) : '' ?>">
+            <input type="submit">
+        </form>
+        <form action="" method="get">
+            <label>Search by Membership Date</label>
+            <input type="date" placeholder="from_date" name="from_date" value="<?php echo isset($_GET['from_date']) ? htmlspecialchars($_GET['from_date']):''?>">
+            <input type="date" placeholder="to_date" name="to_date" value="<?php echo isset($_GET['to_date']) ? htmlspecialchars($_GET['to_date']):''?>">
+            <input type="submit">
+        </form>
+        <form method="get" action="">
+    <label for="limit">Select Limit:</label><br/>
+    <select name="limit" id="limit" class="form-select w-25" required>
+        <?php
+        // Get the current limit or default to 5
+        $selected_limit = isset($_GET['limit']) ? $_GET['limit'] : 5;
 
+        // Loop through options (5, 10, 15, etc.)
+        for ($i = 5; $i <= 200; $i += 5) {
+            echo "<option value='$i' " . ($selected_limit == $i ? 'selected' : '') . ">$i</option>";
+        }
+        ?>
+    </select>
+
+    <!-- Add hidden inputs for all other existing parameters -->
+    <?php
+    // Parse the current query string and remove 'limit' if present (because it's being handled here)
+    $query_params = $_GET;
+    unset($query_params['limit']); // Don't pass the 'limit' parameter as it will be set by the form
+
+    // Create hidden input fields for each parameter
+    foreach ($query_params as $key => $value) {
+        if (!empty($value)) {
+            echo "<input type='hidden' name='" . htmlspecialchars($key) . "' value='" . htmlspecialchars($value) . "'>";
+        }
+    }
+    ?>
+
+    <button type="submit" class="btn btn-primary mt-2">Submit</button>
+</form>
+
+    </div>
+    
     <table class="table table-bordered mt-2">
         <tr>
             <td>Full Name</td>
@@ -70,28 +154,29 @@ $result = $conn->query($sql);
             </tr>
         <?php
         }
+
         ?>
     </table>
 </div>
 
+<?php
+?>
 <div class="container mt-4">
-    <nav style="overflow-x: auto; max-width: 100%; padding-bottom: 10px;">
-        <ul class="pagination justify-content-start" style="white-space: nowrap;">
+    <nav>
+        <ul class="pagination justify-content-center">
             <?php if ($page > 1) { ?>
                 <li class="page-item">
                     <a class="page-link" 
-                       href="?page=<?php echo $page - 1; ?>&limit=<?php echo urlencode($limit); ?>">
+                       href="?page=<?php echo $page - 1; ?>&<?php echo $new_query_string?>">
                         Previous
                     </a>
                 </li>
             <?php } ?>
 
-            <?php 
-            $total_pages = ceil($total_rows / $limit);
-            for ($i = 1; $i <= $total_pages; $i++) { ?>
+            <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
                 <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
                     <a class="page-link" 
-                       href="?page=<?php echo $i; ?>&limit=<?php echo urlencode($limit); ?>">
+                       href="?page=<?php echo $i; ?>&<?php echo $new_query_string; ?>">
                         <?php echo $i; ?>
                     </a>
                 </li>
@@ -100,7 +185,7 @@ $result = $conn->query($sql);
             <?php if ($page < $total_pages) { ?>
                 <li class="page-item">
                     <a class="page-link" 
-                       href="?page=<?php echo $page + 1; ?>&limit=<?php echo urlencode($limit); ?>">
+                       href="?page=<?php echo $page + 1; ?>&<?php echo $new_query_string; ?>">
                         Next
                     </a>
                 </li>
