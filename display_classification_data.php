@@ -3,9 +3,15 @@ include './conn.php';
 require_once __DIR__ . '/vendor/autoload.php'; 
 ob_start();  
 session_start();
+
 $sql_years = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y') AS year_value FROM contacts_classification ORDER BY start_date;";
 $result_years = $conn->query($sql_years);
-
+// $current_query = $_SERVER['QUERY_STRING'];
+// echo $current_query;
+$actual_link = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; // use REQUEST_URI instead of PHP_SELF
+// echo $actual_link;
+$includedFileURL = 'http://' . $_SERVER['HTTP_HOST'] . '/display_classification_data.php';
+// echo $includedFileURL;
 if (isset($_GET['from_date']) && isset($_GET['to_date'])) {
     $from_date = $_GET['from_date'];
     $to_date = $_GET['to_date'];
@@ -382,7 +388,6 @@ if (isset($_POST['generate_csv'])) {
         $sliced_data[$classification][$month] = $row['count'];
     }
 
-    // Writing data rows to the CSV
     foreach ($sliced_data as $classification => $months_data) {
         $row = [$classification];
         foreach ($months as $month) {
@@ -408,10 +413,8 @@ if(isset($_POST["cancel-export-csv"])){
 }
 
 if(isset($_POST["cancel-export-pdf"])){
-
     unset($_SESSION["pdf_generated"]);
-
-header("Location: " . $_SERVER['PHP_SELF'] . "?" . $_SERVER['QUERY_STRING']);
+    header("Location: " . $_SERVER['PHP_SELF'] . "?" . $_SERVER['QUERY_STRING']);
 }
 
     
