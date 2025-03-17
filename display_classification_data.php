@@ -4,7 +4,6 @@ require_once __DIR__ . '/vendor/autoload.php';
 ob_start();  
 session_start();
 $selectedValue = $_GET["selectedValue"];
-echo $selectedValue;
 // if (isset($_GET["$selectedValue"])) {
 //     echo "The selected value is: " . htmlspecialchars($selectedValue);
 // } else {
@@ -185,10 +184,6 @@ a {
     if($result->num_rows>0){
     ?>
     <div class="d-flex align-items-start">
-    <?php 
-    echo $_SERVER['REQUEST_URI'];
-    echo "<br/>;" 
-    ?>
          <form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="POST">
             <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
             <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">

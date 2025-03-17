@@ -1,12 +1,13 @@
 <?php
 include './conn.php';
 $query_string = $_SERVER['QUERY_STRING'];
-
-$selectedValue = $_GET["selectedValue"];
-if (isset($selectedValue)) {    
-    echo "The selected value is: " . htmlspecialchars($selectedValue);
-} else {
-    echo "No selected value available.";
+if(!empty($_GET["selectedValue"])){
+    $selectedValue = $_GET["selectedValue"];
+    if (isset($selectedValue)) {    
+        // echo "The selected value is: " . htmlspecialchars($selectedValue);
+    } else {
+        echo "No selected value available.";
+    }
 }
 if (!empty($_GET)) { 
 
@@ -118,24 +119,47 @@ $result = $conn-> query($sql);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<div class="container">
-    <div>
-        <form action="" method="get">
-            <label>Search by classification</label>
-            <input type="text" name="classification_search" value="<?php echo isset($_GET['classification_search']) ? htmlspecialchars($_GET['classification_search']) : '' ?>">
-            
-            <label>Search by category</label>
-            <input type="text" name="category_search" value="<?php echo isset($_GET['category_search']) ? htmlspecialchars($_GET['category_search']) : '' ?>">
-            
-            <label>Search by Membership Date</label>
-            <input type="date" placeholder="from_date" name="from_date" value="<?php echo isset($_GET['from_date']) ? htmlspecialchars($_GET['from_date']):''?>">
-            <input type="date" placeholder="to_date" name="to_date" value="<?php echo isset($_GET['to_date']) ? htmlspecialchars($_GET['to_date']):''?>">
-            <?php
+<div class="container w-100">
+    <form action="" method="get">
+    
+    <div class="d-flex align-items-between w-100">
+        <div class="d-flex align-items-between">
+            <div>
+                <label class="form-label">Search by classification</label>
+            </div>
+            <div class="w-75">
+                <input type="text" class="form-label" name="classification_search" value="<?php echo isset($_GET['classification_search']) ? htmlspecialchars($_GET['classification_search']) : '' ?>" placeholder = "Search By Classification">
+            </div>
+        </div>
+        <div class="d-flex align-items-between">
+            <div>
+                <label>Search by category</label>
+            </div>
+            <div class="w-75">
+                <input type="text" class="form-label" name="category_search" value="<?php echo isset($_GET['category_search']) ? htmlspecialchars($_GET['category_search']) : '' ?>" placeholder="Search By Category">
+            </div>
+        </div>
+    </div> 
+        <div class="d-flex align-items-center w-100">
+            <div>
+                <label class="form-label">Search by Membership Date</label>
+            </div>
+
+            <div class="d-flex align-items-center ms-2">
+                <div>
+                <input type="date" class="form-label ms-2" placeholder="from_date" name="from_date" value="<?php echo isset($_GET['from_date']) ? htmlspecialchars($_GET['from_date']):''?>">
+                </div>
+                <div>
+                <input type="date" class="form-label ms-2" placeholder="to_date" name="to_date" value="<?php echo isset($_GET['to_date']) ? htmlspecialchars($_GET['to_date']):''?>">
+                </div>
+            </div>
+        </div>
+        <?php
     if (isset($_GET['selectedValue'])) {
         echo "<input type='hidden' name='selectedValue' value='" . htmlspecialchars($_GET['selectedValue']) . "'>";
     }
     ?>
-            <input type="submit">
+            <input type="submit" class="btn btn-primary">
       
         </form>
         <form method="get" action="">
@@ -176,7 +200,7 @@ $new_query_string = http_build_query($query_params);
     <?php
     if (count($_GET)>1) { 
     ?>
-    <table class="table table-bordered mt-2">
+    <table class="container table table-bordered mt-2">
         <tr>
             <td>Full Name</td>
             <td>Email Address</td>
