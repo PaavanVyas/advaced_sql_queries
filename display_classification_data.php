@@ -3,6 +3,13 @@ include './conn.php';
 require_once __DIR__ . '/vendor/autoload.php'; 
 ob_start();  
 session_start();
+$selectedValue = $_GET["selectedValue"];
+echo $selectedValue;
+// if (isset($_GET["$selectedValue"])) {
+//     echo "The selected value is: " . htmlspecialchars($selectedValue);
+// } else {
+//     echo "No selected value available.";
+// }
 
 $sql_years = "SELECT DISTINCT DATE_FORMAT(start_date, '%Y') AS year_value FROM contacts_classification ORDER BY start_date;";
 $result_years = $conn->query($sql_years);
@@ -98,7 +105,7 @@ a {
     }?>
     <div class="container mt-4">
         <div class="row">
-        <form method="GET">
+        <form method="GET" action="">
     <h5>Select Year & Month Range</h5>
 
     <?php if ($result_years->num_rows > 0) { ?> 
@@ -110,7 +117,11 @@ a {
             <label class="me-3" style="width: 60px;">TO:</label>
             <input type="date" name="to_date" class="form-control w-25" value="<?php echo isset($_GET['to_date']) ? $_GET['to_date'] : ''; ?>">
         </div>
-
+        <?php
+    if (isset($_GET['selectedValue'])) {
+        echo "<input type='hidden' name='selectedValue' value='" . htmlspecialchars($_GET['selectedValue']) . "'>";
+    }
+    ?>
         <div class="d-flex justify-content-between">
             <div>
                 <button type="submit" class="btn btn-primary mt-2">Generate Report</button>
@@ -174,7 +185,11 @@ a {
     if($result->num_rows>0){
     ?>
     <div class="d-flex align-items-start">
-         <form action="" method="POST">
+    <?php 
+    echo $_SERVER['REQUEST_URI'];
+    echo "<br/>;" 
+    ?>
+         <form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="POST">
             <input type="text" hidden value="<?php echo $from_date?>" name="from_date">
             <input type="text" hidden value="<?php echo $to_date?>  " name="to_date">
             <button type="submit" name="generate_pdf" class="btn btn-primary ms-3">Download PDF</button>
@@ -200,7 +215,11 @@ a {
     ?>
 </select>
 
-    
+<?php
+    if (isset($_GET['selectedValue'])) {
+        echo "<input type='hidden' name='selectedValue' value='" . htmlspecialchars($_GET['selectedValue']) . "'>";
+    }
+    ?>
     <input type="hidden" name="from_date" value="<?php echo htmlspecialchars($from_date, ENT_QUOTES, 'UTF-8'); ?>">
     <input type="hidden" name="to_date" value="<?php echo htmlspecialchars($to_date, ENT_QUOTES, 'UTF-8'); ?>">
     

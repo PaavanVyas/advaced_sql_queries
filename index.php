@@ -15,24 +15,59 @@
         <option value="classificationReport">Member classification_report_</option>
     </select>
     <?php
-    $queryParams = $_SERVER['QUERY_STRING']; // Get the full query string from the URL (e.g., ?id=123&name=example)
+    if (isset($_GET["selectedValue"])) {
+        $selectedValue = $_GET["selectedValue"];
+        echo $selectedValue;  // Output the selected value
+    } else {
+        echo "No selected value available.";  // Handle the case when 'selectedValue' is not set
+    }
+    $queryParams = $_SERVER['QUERY_STRING'];
 
     if (!empty($queryParams)) {
-        // Construct the URL with query parameters for the included file
-        $fileURL = "http://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; // The full URL of index.php with the query string
-    
+        $fileURL = "http://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; 
+        echo $queryParams;
+        
+        if (isset($_GET['selectedValue'])) {
+            $selectedValue = $_GET['selectedValue'];
+        
+            // echo "You selected: " . $selectedValue;  
+            if ($selectedValue == 'classificationData') {
+                $_GET['selectedValue'] = $selectedValue; 
+                include("display_classification_data.php");
+            } elseif ($selectedValue == 'classificationReport') {
+                include("member_classification_report.php");
+            } else {
+                echo "Invalid selection.";
+            }
+        } 
+        else {
+            echo "No selection made.";
+        }
 
-        include("display_classification_data.php");
+
     } else {
         echo "No parameters passed.";
     }
     
 $current_url = "http://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-echo $current_url;
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Form handling code here
-    $from_date =    $_POST["from_date"];
-    $to_date =      $_POST["to_date"];
+
+    if(isset($_POST["from_date"])){   
+        $from_date = $_POST["from_date"];
+    }
+    if(isset($_POST["to_date"])){
+        $to_date = $_POST["to_date"];
+    }
+    if(isset($_POST["classification_search"])){
+        $classification_search = $_POST["classification_search"];
+    }
+    if(isset($_POST["category_search"])){
+        $category_search = $_POST["category_search"];
+    }
+    
+    
+    
   }
   if(isset($_POST["from_date"])){
     echo $from_date;
@@ -44,40 +79,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div id="result"></div>
 
     <script>
-    
-    $(document).ready(function() {
-    $('#mySelect').change(function(event) {
-        const selectedValue = $(this).val();
-        console.log(selectedValue);  // Log the selected value
+        $(document).ready(function() {
+            // Listen to change on the dropdown
+            $('#mySelect').change(function(event) {
+                const selectedValue = $(this).val();  // Get selected value
 
-        // Check if the selected value is empty
-        if (selectedValue === "") {
-            console.log("No value selected");
-            event.preventDefault();  // Prevent default behavior (if needed)
-        }
+                console.log("Selected Value:", selectedValue);
 
-        // You can perform additional actions here if needed
-        const resultDiv = $('#result');
-        resultDiv.text(`You selected: ${selectedValue}`); // Display the selected value
+                // If no selection is made, return
+                if (selectedValue === "") {
+                    return;
+                }
 
-        // Perform an AJAX request if a value is selected
-        if (selectedValue) {
-            $.ajax({
-                url: 'process_selection.php', 
-                type: 'GET',
-                data: { selectedValue: selectedValue }, 
-                success: function(response) {
-                    resultDiv.html(response);  // Display the server response
-                },
-                error: function() {
-                    resultDiv.html('An error occurred while processing your request.');  // Error handling
+                const resultDiv = $('#result');
+                resultDiv.text(`You selected: ${selectedValue}`);
+
+                // Update the URL with the selected value
+                const currentUrl = window.location.href.split('?')[0];  // Get the base URL (without any query params)
+                const newUrl = currentUrl + '?selectedValue=' + selectedValue;  // Append selectedValue to the URL
+                window.history.pushState(null, '', newUrl);  // Update the URL without reloading the page
+            });
+
+            // Ensure that the form submission includes the selected value in the URL query parameters
+            $('#classificationForm').submit(function(event) {
+                const selectedValue = $('#mySelect').val();  // Get the selected value from dropdown
+
+                // If a selection has been made
+                if (selectedValue !== "") {
+                    // Append the selectedValue to the form action URL
+                    const actionUrl = $(this).attr('action');  // Get the form's action URL
+                    const newActionUrl = actionUrl + '?selectedValue=' + selectedValue;  // Append selectedValue to the URL
+                    $(this).attr('action', newActionUrl);  // Update form action URL dynamically
                 }
             });
-        } else {
-            resultDiv.html('');  // Clear the result div if no selection is made
-        }
-    });
-});
+        });
     </script>
 
 </body>
