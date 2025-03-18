@@ -39,9 +39,14 @@ if (isset($_GET['classification_search']) && !empty($_GET['classification_search
 if (isset($_GET['category_search']) && !empty($_GET['category_search'])) {
     $category_search = $_GET['category_search'];
 }
-$from_date = isset($_GET['from_date']) ? $_GET['from_date'] : '';
-$to_date = isset($_GET['to_date']) ? $_GET['to_date'] : '';
+if(isset($_GET['from_date']) && !empty($_GET['from_date'])){
+    $from_date = isset($_GET['from_date']) ? $_GET['from_date'] : '';
+}
+if(isset($_GET['to_date']) && !empty($_GET['to_date'])){
+    $to_date = isset($_GET['to_date']) ? $_GET['to_date'] : '';
+}
 $offset = ($page - 1) * $limit;
+
 
 $total_sql = "SELECT COUNT(*) AS total FROM contacts 
               JOIN contacts_classification 
@@ -158,7 +163,7 @@ $result = $conn-> query($sql);
             </div>
         </div>
         <?php
-
+    
     if (isset($_GET['selectedValue'])) {
         echo "<input type='hidden' name='selectedValue' value='" . htmlspecialchars($_GET['selectedValue']) . "'>";
     }
@@ -181,22 +186,21 @@ $result = $conn-> query($sql);
     </select>
 
     <?php
-    // Get the query parameters excluding the 'page' and 'limit'
+    if(!isset($classification_search) && !isset($category_search) && !isset($from_date) && !isset($to_date)){
+        die("<p class='container alert alert-danger mt-2'>Please enter atleast one criteria to display data" . $conn->error . "</p>");
+    }
     $query_params = $_GET;
-    unset($query_params['page']);  // Remove the 'page' parameter to prevent pagination conflicts
-    unset($query_params['limit']); // Remove the 'limit' parameter if it exists
+    unset($query_params['page']); 
+    unset($query_params['limit']); 
 
-    // Rebuild the query string excluding the current limit
     $new_query_string = http_build_query($query_params);
     
-    // Add other hidden inputs for the remaining parameters (if any)
     foreach ($query_params as $key => $value) {
         if (!empty($value)) {
             echo "<input type='hidden' name='" . htmlspecialchars($key) . "' value='" . htmlspecialchars($value) . "'>";
         }
     }
 
-    // Add the selectedValue hidden input if it exists in the URL
     if (isset($_GET['selectedValue'])) {
         echo "<input type='hidden' name='selectedValue' value='" . htmlspecialchars($_GET['selectedValue']) . "'>";
     }
@@ -207,7 +211,7 @@ $result = $conn-> query($sql);
 
     <?php
     if ($result->num_rows==0) {
-        die("<p class='container alert alert-danger mt-2'>No data found in the given timestamp " . $conn->error . "</p>");
+        die("<p class='container alert alert-danger mt-2'>No data found in the given Condition/s " . $conn->error . "</p>");
     }
     ?>
 
