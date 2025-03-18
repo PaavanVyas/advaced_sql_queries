@@ -1,0 +1,43 @@
+Basic logic done
+now refresh refressh requirement removed
+design of pagination
+design of members classification report
+
+
+
+new query string not passed in nav
+pagination issue resolve at night
+
+
+fix the design issues 
+add download csv and download pdf in member_classification-report
+
+
+invoice table for donation type
+and if not service id
+patient id
+
+contacts and invoice through service id
+
+
+
+INvoice id if null 
+so patientid to contacts table contactid
+
+Add parent
+
+FFM-2274
+
+
+Add new columns to Members Classification Report
+
+Add
+Description
+
+Update the Members Classification Report by adding additional columns for contact’s donation.
+
+You can find the donation of the contact from the contacts_donation table.
+
+This should display the total donation and type of the contact in the given date range.
+
+Columns Name: ‘Donations’ and ‘Donation Type’

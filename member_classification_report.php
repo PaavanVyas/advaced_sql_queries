@@ -89,10 +89,19 @@ $sql = "SELECT CONCAT(first_name, ' ', last_name) AS Full_Name,
                contacts.category AS category, 
                contacts_classification.classification AS classification, 
                start_date, 
-               expiry_date
+               expiry_date, 
+               SUM(donation_total) AS total_donations,
+               type,
+               invoice_type
         FROM contacts
         LEFT JOIN contacts_classification
-        ON contacts.contactid = contacts_classification.contactid";
+        ON contacts.contactid = contacts_classification.contactid
+        LEFT JOIN contacts_donation 
+        ON contacts.contactid = contacts_donation.contactid
+        LEFT JOIN invoice 
+        ON contacts_donation.serviceid = invoice.serviceid 
+        OR contacts_donation.patientid = invoice.patientid 
+        ";
 
 if (!empty($classification_search)) {
     $classification_search = mysqli_real_escape_string($conn, $classification_search);
@@ -117,10 +126,13 @@ if (!empty($from_date) && !empty($to_date)) {
         $sql .= " WHERE start_date BETWEEN '$from_date' AND '$to_date'";
     }
 }
+$sql .= " GROUP BY contacts.contactid, contacts_classification.classification, contacts.category, start_date, expiry_date, email_address, cell_phone";
 $sql .= " LIMIT $limit OFFSET $offset";
 
 
 $result = $conn-> query($sql);
+$num_rows_result = $result -> num_rows;
+echo $num_rows_result;
 
 ?>
 
@@ -305,6 +317,8 @@ if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
             <td>Start Date</td>
             <td>Expiry Date</td>
             <td>category</td>
+            <td>Total Donation</td>
+            <td>Type</td>
         </tr>
 
         <?php
@@ -319,6 +333,8 @@ if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
                 <td><?php echo $row["start_date"];?></td>
                 <td><?php echo $row["expiry_date"];?></td>
                 <td><?php echo $row["category"];?></td>
+                <td><?php echo $row["total_donations"];?></td>
+                <td><?php echo $row["type"];?></td>
             </tr>
         <?php
         }
