@@ -153,7 +153,7 @@ a {
     $result = $conn->query($sql);
 
     if ($result->num_rows==0) {
-        die("</div></div><p class='container alert alert-danger'>No data found in the given timestamp " . $conn->error . "</p>");
+        die("</div></div><p class='container alert alert-danger mt-2'>No data found in the given timestamp " . $conn->error . "</p>");
     }
 
     $data = [];

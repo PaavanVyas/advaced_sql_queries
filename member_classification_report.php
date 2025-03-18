@@ -113,6 +113,7 @@ $sql .= " LIMIT $limit OFFSET $offset";
 
 
 $result = $conn-> query($sql);
+
 ?>
 
 <html>
@@ -157,6 +158,7 @@ $result = $conn-> query($sql);
             </div>
         </div>
         <?php
+
     if (isset($_GET['selectedValue'])) {
         echo "<input type='hidden' name='selectedValue' value='" . htmlspecialchars($_GET['selectedValue']) . "'>";
     }
@@ -203,6 +205,11 @@ $result = $conn-> query($sql);
     <button type="submit" class="btn btn-primary mt-2">Submit</button>
 </form>
 
+    <?php
+    if ($result->num_rows==0) {
+        die("<p class='container alert alert-danger mt-2'>No data found in the given timestamp " . $conn->error . "</p>");
+    }
+    ?>
 
     </div>
     <?php
@@ -239,7 +246,7 @@ $result = $conn-> query($sql);
 </div>
 <div class="container mt-4">
 <nav>
-    <ul class="pagination justify-content-center" style="max-width: 100%; overflow-x: auto; white-space: nowrap;">
+    <ul class="pagination" style="max-width: 100%; overflow-x: scroll; ">
         <?php if ($page > 1) { ?>
             <li class="page-item">
                 <a class="page-link" href="?page=<?php echo $page - 1; ?>&<?php echo $query_string; ?>">
@@ -249,7 +256,7 @@ $result = $conn-> query($sql);
         <?php } ?>
 
         <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
-            <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>" style="display: inline-block;">
+            <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>" style="display: inline;">
                 <a class="page-link" href="?&page=<?php echo $i; ?>&<?php echo $query_string; ?>">
                     <?php echo $i; ?>
                 </a>
