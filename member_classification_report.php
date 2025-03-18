@@ -174,7 +174,7 @@ if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
     }?>
     <form action="" method="get">
     
-    <div class="container">
+    <div class="container mt-2">
     <div class="row">
         <div class="col">
             <label class="form-label">Search by classification</label>
@@ -190,73 +190,70 @@ if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
         </div>
     </div>
 
-    <div class="row">
-    <!-- <div class="d-flex justify-content-between"> -->
-        <div class="col">
-            <label class="form-label">Search by Membership Date</label>
-        </div>
-        <div class="col">
-                <input type="date" class="form-label ms-2" name="from_date" value="<?php echo isset($_GET['from_date']) ? htmlspecialchars($_GET['from_date']) : ''?>">
-        </div>
-        <div class="col">
-                <input type="date" class="form-label ms-2" name="to_date" value="<?php echo isset($_GET['to_date']) ? htmlspecialchars($_GET['to_date']) : ''?>">
-        </div>
-    <!-- </div> -->
+    <div class="row align-items-center">
+    <div class="col-lg-3">
+        <label class="form-label">Search by Membership Date</label>
+    </div>
 
-        <?php
-    
-    if (isset($_GET['selectedValue'])) {
-        echo "<input type='hidden' name='selectedValue' value='" . htmlspecialchars($_GET['selectedValue']) . "'>";
-    }
-    ?><div class="col text-end">
-            <input type="submit" class="btn btn-primary">
-        </div>
-        </form>
-        </div>
+    <div class="col">
+        <input type="date" class="form-control" name="from_date" 
+            value="<?php echo isset($_GET['from_date']) ? htmlspecialchars($_GET['from_date']) : '' ?>">
+    </div>
+
+    <div class="col">
+        <input type="date" class="form-control" name="to_date" 
+            value="<?php echo isset($_GET['to_date']) ? htmlspecialchars($_GET['to_date']) : '' ?>">
+    </div>
+
+    <?php if (isset($_GET['selectedValue'])) { ?>
+        <input type="hidden" name="selectedValue" value="<?php echo htmlspecialchars($_GET['selectedValue']); ?>">
+    <?php } ?>
+
+    <div class="col text-end mb-2">
+        <input type="submit" class="btn btn-primary ">
+    </div>
+    </form>
+</div>
+
     </div>
 
         <form method="get" action="">
     
-
-    <div class="row">
-        <div class="col-2">
-            <label for="limit">Select Limit:</label><br/>
-        </div>
-        <div class="col-4">
-        <select name="limit" id="limit" class="form-select w-25" required>
+    <div class="container mt-2 mb-2">
+    <div class="row align-items-center">
+    <div class="col-auto">
+        <label for="limit" class="form-label">Select Limit:</label>
+    </div>
+    <div class="col-auto">
+        <select name="limit" id="limit" class="form-select" required>
             <?php
-            // Get the current limit or default to 5
             $selected_limit = isset($_GET['limit']) ? $_GET['limit'] : 5;
-
-            // Loop through options (5, 10, 15, etc.)
             for ($i = 5; $i <= 200; $i += 5) {
                 echo "<option value='$i' " . ($selected_limit == $i ? 'selected' : '') . ">$i</option>";
             }
             ?>
         </select>
-        </div>
-    
-    <?php
-    
-    $query_params = $_GET;
-    unset($query_params['page']); 
-    unset($query_params['limit']); 
+    </div>
 
-    $new_query_string = http_build_query($query_params);
-    
+    <?php
+    $query_params = $_GET;
+    unset($query_params['page'], $query_params['limit']);
     foreach ($query_params as $key => $value) {
         if (!empty($value)) {
             echo "<input type='hidden' name='" . htmlspecialchars($key) . "' value='" . htmlspecialchars($value) . "'>";
         }
     }
-
     if (isset($_GET['selectedValue'])) {
         echo "<input type='hidden' name='selectedValue' value='" . htmlspecialchars($_GET['selectedValue']) . "'>";
     }
     ?>
-    <div class="col-2">
-    <button type="submit" class="btn btn-primary mt-2">Submit</button>
+    
+    <!-- Right-align Submit button -->
+    <div class="col text-end">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
 </div>
+
 </div>
 </form>
 
@@ -273,7 +270,8 @@ if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
     <?php
     if($result->num_rows>0){
         ?>
-        <div class="d-flex align-items-start">
+        <div class="row">
+        <div class="col d-flex justify-content-end mt-2">
              <form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="POST">
                 <input type="text" hidden value="<?php if(!empty($from_date)){ echo $from_date;}?>" name="from_date">
                 <input type="text" hidden value="<?php if(!empty($to_date)){echo $to_date;}?>  " name="to_date">
@@ -285,7 +283,8 @@ if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
                 <input type="text" hidden value="<?php if(!empty($to_date)){echo $to_date;}?>" name="to_date">
                 <button type="submit" name="generate_csv" class="btn btn-primary ms-3">Download CSV</button>
             </form> 
-        </div>        
+        </div> 
+    </div>       
     <?php
     }
     if (count($_GET)>1) { 
@@ -367,59 +366,92 @@ if (isset($_POST['generate_pdf'])) {
     $filename = "classification_report_".date("Y-m-d_H-i-s").".pdf";
     
 
-    $pdf = new TCPDF(); 
-    $pdf->AddPage();
+$pdf = new TCPDF(); 
+$pdf->AddPage();
 $pdf->setTitle('Data_Report_' . $from_date . '_to_' . $to_date);
 $pdf->setSubject('Setting Subject');
 $pdf->SetFont('helvetica', '', 8);
+$sql = "SELECT CONCAT(first_name, ' ', last_name) AS Full_Name, 
+               email_address, 
+               cell_phone,
+               contacts.category AS category, 
+               contacts_classification.classification AS classification, 
+               start_date, 
+               expiry_date
+        FROM contacts
+        LEFT JOIN contacts_classification
+        ON contacts.contactid = contacts_classification.contactid";
 
-// Start the table HTML
-$html = "<table class='container table table-bordered mt-2'>
-            <tr>
-                <td>Full Name</td>
-                <td>Email Address</td>
-                <td>Cell Phone</td>
-                <td>Classification</td>
-                <td>Start Date</td>
-                <td>Expiry Date</td>
-                <td>Category</td>
-            </tr>";
-
-// Loop through the database results
-while ($row = $result->fetch_assoc()) {
-    $html .= "<tr>
-                <td>" . decryptItShared($row['Full_Name']) . "</td>
-                <td>" . decryptItShared($row['email_address']) . "</td>
-                <td>" . decryptItShared($row['cell_phone']) . "</td>
-                <td>" . $row['classification'] . "</td>
-                <td>" . $row['start_date'] . "</td>
-                <td>" . $row['expiry_date'] . "</td>
-                <td>" . $row['category'] . "</td>
-              </tr>";
+if (!empty($classification_search)) {
+    $classification_search = mysqli_real_escape_string($conn, $classification_search);
+    // If it's the first condition, use WHERE, otherwise use AND
+    $sql .= " WHERE contacts_classification.classification = '$classification_search'";
 }
 
-// Close the table HTML
-$html .= "</table>";
 
-// Output the HTML to the PDF
-$pdf->WriteHTML($html, true, true, true, true, '');
+if (!empty($category_search)) {
 
-
-    $directory = __DIR__ . "/csv_files/";
-    if (!is_dir($directory)) {
-        mkdir($directory, 0777, true); 
+    if (strpos($sql, "WHERE") !== false) {
+        $sql .= " AND contacts.category = '$category_search'";
+    } else {
+        $sql .= " WHERE contacts.category ='$category_search'";
     }
-    $file_path = $directory . $filename;
+}
 
-    $pdf->Output($file_path, 'F');
+if (!empty($from_date) && !empty($to_date)) {
+    if (strpos($sql, "WHERE") !== false) {
+        $sql .= " AND start_date BETWEEN '$from_date' AND '$to_date'";
+    } else {
+        $sql .= " WHERE start_date BETWEEN '$from_date' AND '$to_date'";
+    }
+}
 
 
-    $_SESSION["pdf_generated"] = "True";
-    $_SESSION["pdf_filename"] = $filename;
 
-    // **Redirect user to display download link**
-    header("Location: " . $_SERVER['PHP_SELF'] . "?" . $_SERVER['QUERY_STRING']);
-    exit();
+$result = $conn-> query($sql);
+
+$generatereport = '<table border="1" cellpadding="5">
+        <tr>
+            <th>Full Name</th>
+            <th>Email Address</th>
+            <th>Cell Phone</th>
+            <th>Classification</th>
+            <th>Start Date</th>
+            <th>Expiry Date</th>
+            <th>Category</th>
+        </tr>';
+
+while ($row = $result->fetch_assoc()) {
+    $generatereport .= '<tr>
+                <td>' . decryptItShared($row["Full_Name"]) . '</td>
+                <td>' . decryptItShared($row["email_address"]) . '</td>
+                <td>' . decryptItShared($row["cell_phone"]) . '</td>
+                <td>' . $row["classification"] . '</td>
+                <td>' . $row["start_date"] . '</td>
+                <td>' . $row["expiry_date"] . '</td>
+                <td>' . $row["category"] . '</td>
+            </tr>';
+            echo $row['category'];
+}
+
+$generatereport .= '</table>';
+
+$pdf->writeHTML($generatereport, true, false, true, false, '');
+
+$directory = __DIR__ . "/csv_files/";
+if (!is_dir($directory)) {
+    mkdir($directory, 0777, true);
+}
+$filename = 'Data_Report_'.date("Y-m-d_H-i-s").'.pdf';
+$file_path = $directory . $filename;
+
+$pdf->Output($file_path, 'F');
+
+// Store filename in session for download
+$_SESSION["pdf_generated"] = "True";
+$_SESSION["pdf_filename"] = $filename;
+
+exit();
 }
 
 
@@ -467,11 +499,21 @@ if (!empty($from_date) && !empty($to_date)) {
         $sql .= " WHERE start_date BETWEEN '$from_date' AND '$to_date'";
     }
 }
-$sql .= " LIMIT $limit OFFSET $offset";
 
 
 $result = $conn-> query($sql);
 while($row=$result->fetch_assoc()){
+    $encrpted_name = $row["Full_Name"];
+    $decrypted_name = decryptItShared($encrpted_name);
+    $row["Full_Name"] = $decrypted_name;
+
+    $encrypted_email = $row["email_address"];
+    $decrypted_email = decryptItShared($encrypted_email);
+    $row["email_address"] = $decrypted_email;
+
+    $encrypted_cellphone = $row["cell_phone"];
+    $decrypted_cellphone = decryptItShared($encrypted_cellphone);
+    $row["cell_phone"] = $decrypted_cellphone;
     fputcsv($output, $row);
 }
 print_r($result);
