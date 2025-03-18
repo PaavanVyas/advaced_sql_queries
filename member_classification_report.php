@@ -21,8 +21,10 @@ if(isset($_GET['url'])){
 
 parse_str($query_string, $query_params);
 
-
 unset($query_params['page']);
+
+$query_string = http_build_query($query_params);
+
 
 $new_query_string = http_build_query($query_params);
 
@@ -51,7 +53,6 @@ if (!empty($classification_search)) {
 }
 
 if (!empty($category_search)) {
-    // If we already have a WHERE condition, add AND, else use WHERE
     if (strpos($total_sql, "WHERE") !== false) {
         $total_sql .= " AND contacts.category = '$category_search'";
     } else {
@@ -236,24 +237,20 @@ $result = $conn-> query($sql);
         ?>
     </table>
 </div>
-
-<?php
-?>
 <div class="container mt-4">
 <nav>
     <ul class="pagination justify-content-center" style="max-width: 100%; overflow-x: auto; white-space: nowrap;">
         <?php if ($page > 1) { ?>
             <li class="page-item">
-                <a class="page-link" href="?page=<?php echo $page - 1; ?>&<?php echo $new_query_string; ?>">
+                <a class="page-link" href="?page=<?php echo $page - 1; ?>&<?php echo $query_string; ?>">
                     Previous
                 </a>
             </li>
         <?php } ?>
 
-        <!-- Page Number Links -->
         <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
             <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>" style="display: inline-block;">
-                <a class="page-link" href="?page=<?php echo $i; ?>&<?php echo $new_query_string; ?>">
+                <a class="page-link" href="?&page=<?php echo $i; ?>&<?php echo $query_string; ?>">
                     <?php echo $i; ?>
                 </a>
             </li>
@@ -261,7 +258,7 @@ $result = $conn-> query($sql);
 
         <?php if ($page < $total_pages) { ?>
             <li class="page-item">
-                <a class="page-link" href="?page=<?php echo $page + 1; ?>&<?php echo $new_query_string; ?>">
+                <a class="page-link" href="?page=<?php echo $page + 1; ?>&<?php echo $query_string; ?>">
                     Next
                 </a>
             </li>
