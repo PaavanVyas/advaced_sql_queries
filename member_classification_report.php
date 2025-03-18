@@ -187,13 +187,13 @@ if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
             <label class="form-label">Search by classification</label>
         </div>
         <div class="col">
-            <input type="text" class="form-label w-100" name="classification_search" value="<?php echo isset($_GET['classification_search']) ? htmlspecialchars($_GET['classification_search']) : '' ?>" placeholder="Search By Classification">
+            <input type="text" class="form-label w-100" name="classification_search" value="<?php echo isset($_GET['classification_search']) ? htmlspecialchars($_GET['classification_search']) : '' ?>" placeholder="Search By Classification" class="form-control">
         </div>
         <div class="col">
             <label class="form-label">Search by category</label>
         </div>
         <div class="col w-100">
-            <input type="text" class="form-label w-100" name="category_search" value="<?php echo isset($_GET['category_search']) ? htmlspecialchars($_GET['category_search']) : '' ?>" placeholder="Search By Category">
+            <input type="text" class="form-label w-100" name="category_search" value="<?php echo isset($_GET['category_search']) ? htmlspecialchars($_GET['category_search']) : '' ?>" placeholder="Search By Category" class="form-control">
         </div>
     </div>
 
