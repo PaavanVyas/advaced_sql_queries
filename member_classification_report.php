@@ -1,4 +1,5 @@
 <?php
+ob_start();
 include './conn.php';
 session_start();
 require_once __DIR__ . '/vendor/autoload.php';
@@ -127,6 +128,12 @@ $result = $conn-> query($sql);
 <head>
     <title>Member Classification Data</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        label{
+            font-weight: bold;
+        }
+
+    </style>
 </head>
 <body>
 <div class="container w-100 mt-3 border">
@@ -191,17 +198,17 @@ if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
     </div>
 
     <div class="row align-items-center">
-    <div class="col-lg-3">
+    <div class="col-3">
         <label class="form-label">Search by Membership Date</label>
     </div>
 
-    <div class="col">
-        <input type="date" class="form-control" name="from_date" 
+    <div class="col-auto">
+        <input type="date" class="form-control-sm w-100" name="from_date" id="from_date"
             value="<?php echo isset($_GET['from_date']) ? htmlspecialchars($_GET['from_date']) : '' ?>">
     </div>
 
-    <div class="col">
-        <input type="date" class="form-control" name="to_date" 
+    <div class="col-auto">
+        <input type="date" class="form-control-sm w-100 " name="to_date" id="to_date"
             value="<?php echo isset($_GET['to_date']) ? htmlspecialchars($_GET['to_date']) : '' ?>">
     </div>
 
@@ -221,10 +228,10 @@ if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
     
     <div class="container mt-2 mb-2">
     <div class="row align-items-center">
-    <div class="col-auto">
+    <div class="col-3">
         <label for="limit" class="form-label">Select Limit:</label>
     </div>
-    <div class="col-auto">
+    <div class="col-3">
         <select name="limit" id="limit" class="form-select" required>
             <?php
             $selected_limit = isset($_GET['limit']) ? $_GET['limit'] : 5;
@@ -249,7 +256,7 @@ if (isset($_SESSION["csv_generated"]) && $_SESSION["csv_generated"] == "True") {
     ?>
     
     <!-- Right-align Submit button -->
-    <div class="col text-end">
+    <div class="col">
         <button type="submit" class="btn btn-primary">Submit</button>
     </div>
 </div>
@@ -451,6 +458,8 @@ $pdf->Output($file_path, 'F');
 $_SESSION["pdf_generated"] = "True";
 $_SESSION["pdf_filename"] = $filename;
 
+header("Location: " . $_SERVER['PHP_SELF'] . "?" . $_SERVER['QUERY_STRING']);
+
 exit();
 }
 
@@ -525,7 +534,7 @@ echo "Session created";
 
 
     fclose($output);
-    // header("Location: " . $_SERVER['PHP_SELF'] . "?" . $_SERVER['QUERY_STRING']);
+    header("Location: " . $_SERVER['PHP_SELF'] . "?" . $_SERVER['QUERY_STRING']);
 
     exit();
 }
@@ -562,3 +571,26 @@ function decryptItShared($q) {
     }
 }
 ?>
+
+<script>
+    document.getElementById("startDate").onfocus = function () {
+    this.type = "date";
+};
+document.getElementById("startDate").onblur = function () {
+    if (!this.value) this.type = "text";
+    this.placeholder = "Select start date";
+};
+
+document.getElementById("endDate").onfocus = function () {
+    this.type = "date";
+};
+document.getElementById("endDate").onblur = function () {
+    if (!this.value) this.type = "text";
+    this.placeholder = "Select end date";
+};
+
+</script>
+<?php
+ob_end_flush(); // Send output to browser
+?>
+
