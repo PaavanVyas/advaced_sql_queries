@@ -29,6 +29,7 @@ $new_query_string = http_build_query($query_params);
 
 
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
+
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if (isset($_GET['classification_search']) && !empty($_GET['classification_search'])) {
     $classification_search = $_GET['classification_search'];
@@ -176,25 +177,31 @@ $result = $conn-> query($sql);
         ?>
     </select>
 
-
     <?php
-    
+    // Get the query parameters excluding the 'page' and 'limit'
     $query_params = $_GET;
-unset($query_params['page']); 
-$new_query_string = http_build_query($query_params);
+    unset($query_params['page']);  // Remove the 'page' parameter to prevent pagination conflicts
+    unset($query_params['limit']); // Remove the 'limit' parameter if it exists
+
+    // Rebuild the query string excluding the current limit
+    $new_query_string = http_build_query($query_params);
+    
+    // Add other hidden inputs for the remaining parameters (if any)
     foreach ($query_params as $key => $value) {
         if (!empty($value)) {
             echo "<input type='hidden' name='" . htmlspecialchars($key) . "' value='" . htmlspecialchars($value) . "'>";
         }
     }
-    ?>
-<?php
+
+    // Add the selectedValue hidden input if it exists in the URL
     if (isset($_GET['selectedValue'])) {
         echo "<input type='hidden' name='selectedValue' value='" . htmlspecialchars($_GET['selectedValue']) . "'>";
     }
     ?>
+
     <button type="submit" class="btn btn-primary mt-2">Submit</button>
 </form>
+
 
     </div>
     <?php
@@ -233,36 +240,35 @@ $new_query_string = http_build_query($query_params);
 <?php
 ?>
 <div class="container mt-4">
-    <nav>
-        <ul class="pagination justify-content-center">
-            <?php if ($page > 1) { ?>
-                <li class="page-item">
-                    <a class="page-link" 
-                       href="?page=<?php echo $page - 1; ?>&<?php echo $new_query_string?>">
-                        Previous
-                    </a>
-                </li>
-            <?php } ?>
+<nav>
+    <ul class="pagination justify-content-center" style="max-width: 100%; overflow-x: auto; white-space: nowrap;">
+        <?php if ($page > 1) { ?>
+            <li class="page-item">
+                <a class="page-link" href="?page=<?php echo $page - 1; ?>&<?php echo $new_query_string; ?>">
+                    Previous
+                </a>
+            </li>
+        <?php } ?>
 
-            <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
-                <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
-                    <a class="page-link" 
-                       href="?page=<?php echo $i; ?>&<?php echo $new_query_string; ?>">
-                        <?php echo $i; ?>
-                    </a>
-                </li>
-            <?php } ?>
+        <!-- Page Number Links -->
+        <?php for ($i = 1; $i <= $total_pages; $i++) { ?>
+            <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>" style="display: inline-block;">
+                <a class="page-link" href="?page=<?php echo $i; ?>&<?php echo $new_query_string; ?>">
+                    <?php echo $i; ?>
+                </a>
+            </li>
+        <?php } ?>
 
-            <?php if ($page < $total_pages) { ?>
-                <li class="page-item">
-                    <a class="page-link" 
-                       href="?page=<?php echo $page + 1; ?>&<?php echo $new_query_string; ?>">
-                        Next
-                    </a>
-                </li>
-            <?php } ?>
-        </ul>
-    </nav>
+        <?php if ($page < $total_pages) { ?>
+            <li class="page-item">
+                <a class="page-link" href="?page=<?php echo $page + 1; ?>&<?php echo $new_query_string; ?>">
+                    Next
+                </a>
+            </li>
+        <?php } ?>
+    </ul>
+</nav>
+
 </div>
 <?php
     }
